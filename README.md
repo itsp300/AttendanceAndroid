@@ -1,2 +1,2 @@
-# AttendanceAndroid
+# Attendance Android
 Mobile App
