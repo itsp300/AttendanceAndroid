@@ -10,8 +10,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import static java.lang.Thread.sleep;
-
 public class LoginActivity extends AppCompatActivity {
     EditText studentNumber_editText;
     EditText password_editText;
@@ -22,10 +20,6 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        // NOTE(Morne): We are required to set the theme before we call onCreate() as it was previously
-        // set to AppTheme.launcher for the launch screen to show.
-        setTheme(R.style.AppTheme);
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
@@ -34,6 +28,8 @@ public class LoginActivity extends AppCompatActivity {
         login_progress = findViewById(R.id.login_progress);
         login_button = findViewById(R.id.login_button);
         register_text = findViewById(R.id.register_text);
+
+        // TODO(Morne): Check to see if the user is already authenticated and skip login
 
         login_button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -44,7 +40,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 // Check login
 
-                login_progress.setVisibility(View.GONE);
+                login_progress.setVisibility(View.INVISIBLE);
 
                 // See if successful
                 boolean login_valid = true;
