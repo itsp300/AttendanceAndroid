@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Pearson Attendance</string>
+    <string name="summary_title">Summary</string>
 </resources>

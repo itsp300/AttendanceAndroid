@@ -46,8 +46,8 @@ public class LoginActivity extends AppCompatActivity {
                 boolean login_valid = true;
                 if(login_valid) {
                     // NOTE(Morne): The intent is empty as we should not need to come back to
-                    // this activity, could possible change.
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    // this activity.
+                    Intent intent = new Intent(LoginActivity.this, SummaryActivity.class);
                     startActivity(intent);
                     finish();
                 }
