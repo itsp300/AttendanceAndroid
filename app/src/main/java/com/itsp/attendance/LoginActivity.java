@@ -47,7 +47,7 @@ public class LoginActivity extends AppCompatActivity {
                 if(login_valid) {
                     // NOTE(Morne): The intent is empty as we should not need to come back to
                     // this activity.
-                    Intent intent = new Intent(LoginActivity.this, SummaryActivity.class);
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     startActivity(intent);
                     finish();
                 }
