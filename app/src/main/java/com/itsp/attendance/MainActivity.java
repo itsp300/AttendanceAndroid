@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // NOTE(Morne): Sets the initial fragment to the home fragment.
+        // NOTE(Morne): Sets the initial fragment to the home_fragment.
         // TODO(Morne): Lookup what these transaction methods do.
         HomeFragment fragment = new HomeFragment();
         android.support.v4.app.FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
