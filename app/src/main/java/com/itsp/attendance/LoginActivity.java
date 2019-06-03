@@ -45,8 +45,7 @@ public class LoginActivity extends AppCompatActivity {
                 // See if successful
                 boolean login_valid = true;
                 if(login_valid) {
-                    // NOTE(Morne): The intent is empty as we should not need to come back to
-                    // this activity.
+                    // TODO(Morne): Pass through login status and type(lecturer/student)
                     Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                     startActivity(intent);
                     finish();
