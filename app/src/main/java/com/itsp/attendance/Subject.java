@@ -6,6 +6,9 @@ public class Subject {
     private String total;
     private String thumbnail;
 
+    protected final static String ATTENDANCE_LABEL = "Attendance:";
+    protected final static String TOTAL_LABEL = "Total:";
+
     public Subject() {}
 
     public Subject(String code, String attendance, String total, String thumbnail) {

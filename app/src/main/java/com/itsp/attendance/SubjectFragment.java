@@ -22,21 +22,30 @@ public class SubjectFragment extends Fragment {
     SubjectAdapter subjectAdapter;
     ArrayList<Subject> subjects;
 
-    public static final String[] subjectCodes = {"test", "test", "test", "test", "test"};
+    public static final String[] subjectThumbnails = {"placeholder", "placeholder", "placeholder", "placeholder", "placeholder"};
+    public static final String[] subjectCodes = {"ITOO211", "ITDA123", "ITCC111", "ITAC100", "ITEF199"};
+    public static final String[] subjectAttendances = {"12", "31", "41", "1", "41"};
+    public static final String[] subjecttotals = {"12", "34", "56", "1", "43"};
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_subject, container, false);
-        subjects = new ArrayList<>();
+        // TODO(Morne): Do something about screen rotation. Rotating the screen causes view to go
+        // away within the fragment.
 
+
+        View view = inflater.inflate(R.layout.fragment_subject, container, false);
+
+        subjects = new ArrayList<>();
         for(int i=0;i<subjectCodes.length;i++)
         {
             Subject subject = new Subject();
             subject.setCode(subjectCodes[i]);
-            subject.setAttendance(subjectCodes[i]);
-            subject.setTotal(subjectCodes[i]);
+            subject.setAttendance(subjectAttendances[i]);
+            subject.setTotal(subjecttotals[i]);
+            subject.setThumbnail(subjectThumbnails[i]);
+
             subjects.add(subject);
         }
 

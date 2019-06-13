@@ -14,10 +14,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.ViewHolder> {
-    List<Subject> subjectList;
-    Context context;
+    private List<Subject> subjectList;
+    private Context context;
 
-    public SubjectAdapter(List<Subject> subjectList) {
+    SubjectAdapter(List<Subject> subjectList) {
         this.subjectList = subjectList;
     }
 
@@ -35,8 +35,10 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.ViewHold
         Subject subject = subjectList.get(position);
 
         holder.subjectCode.setText(subject.getCode());
-        holder.subjectAttendance.setText(subject.getAttendance());
-        holder.subjectTotal.setText(subject.getTotal());
+        int resourceId = context.getResources().getIdentifier(subject.getThumbnail(), "drawable", context.getPackageName());
+        holder.subjectThumbnail.setImageResource(resourceId);
+        holder.subjectAttendance.setText(Subject.ATTENDANCE_LABEL + subject.getAttendance());
+        holder.subjectTotal.setText(Subject.TOTAL_LABEL + subject.getTotal());
     }
 
     @Override
@@ -44,20 +46,22 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.ViewHold
         return subjectList.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder
+    class ViewHolder extends RecyclerView.ViewHolder
     {
+        ImageView subjectThumbnail;
         TextView subjectCode;
         TextView subjectAttendance;
         TextView subjectTotal;
         CardView subjectCardView;
 
-        public ViewHolder(View itemView)
+        ViewHolder(View itemView)
         {
             super(itemView);
-            subjectCode = (TextView)itemView.findViewById(R.id.subject_code);
-            subjectAttendance = (TextView)itemView.findViewById(R.id.subject_attendance);
-            subjectTotal = (TextView)itemView.findViewById(R.id.subject_total);
-            subjectCardView = (CardView)itemView.findViewById(R.id.subject_card_view);
+            subjectThumbnail = itemView.findViewById(R.id.subject_thumbnail);
+            subjectCode = itemView.findViewById(R.id.subject_code);
+            subjectAttendance = itemView.findViewById(R.id.subject_attendance);
+            subjectTotal = itemView.findViewById(R.id.subject_total);
+            subjectCardView = itemView.findViewById(R.id.subject_card_view);
         }
 
     }
