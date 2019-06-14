@@ -13,6 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+    Imports have been altered from source
+ */
+
 package com.itsp.attendance.barcodereader;
 
 import android.Manifest;
