@@ -36,6 +36,11 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.ViewHold
 
         holder.subjectCode.setText(subject.getCode());
         int resourceId = context.getResources().getIdentifier(subject.getThumbnail(), "drawable", context.getPackageName());
+        // Check if the drawable was found, else use placeholder one.
+        if (resourceId == 0)
+        {
+            resourceId = context.getResources().getIdentifier("placeholder", "drawable", context.getPackageName());
+        }
         holder.subjectThumbnail.setImageResource(resourceId);
         holder.subjectAttendance.setText(Subject.ATTENDANCE_LABEL + subject.getAttendance());
         holder.subjectTotal.setText(Subject.TOTAL_LABEL + subject.getTotal());

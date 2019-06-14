@@ -1,26 +1,21 @@
 package com.itsp.attendance;
 
-
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
 
-/**
- * A simple {@link Fragment} subclass.
- */
 public class SubjectFragment extends Fragment {
-    RecyclerView subjectRecycler;
-    SubjectAdapter subjectAdapter;
-    ArrayList<Subject> subjects;
+    private RecyclerView subjectRecycler;
+    private SubjectAdapter subjectAdapter;
+    private ArrayList<Subject> subjects;
 
     public static final String[] subjectThumbnails = {"placeholder", "placeholder", "placeholder", "placeholder", "placeholder"};
     public static final String[] subjectCodes = {"ITOO211", "ITDA123", "ITCC111", "ITAC100", "ITEF199"};
@@ -32,8 +27,7 @@ public class SubjectFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         // TODO(Morne): Do something about screen rotation. Rotating the screen causes view to go
-        // away within the fragment.
-
+        // away within the fragment. Probably due to onCreate() in MainActivity being called again.
 
         View view = inflater.inflate(R.layout.fragment_subject, container, false);
 
