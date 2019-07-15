@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Pearson Attendance</string>
+    <string name="app_name">Attendance</string>
     <string name="subjects_menu">Subjects</string>
     <string name="notifications_menu">Notifications</string>
     <string name="home_menu">Home</string>

@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:contentDescription="logo"
-            android:src="@drawable/pearson" />
+            android:src="@mipmap/logo" />
 
         <TextView
             android:id="@+id/login_text"
@@ -31,7 +31,7 @@
             android:layout_centerHorizontal="true"
             android:layout_marginBottom="20dp"
             android:gravity="center_horizontal"
-            android:text="Pearson Attendance"
+            android:text="Attendance"
             android:textAllCaps="false"
             android:textSize="40sp" />
 
