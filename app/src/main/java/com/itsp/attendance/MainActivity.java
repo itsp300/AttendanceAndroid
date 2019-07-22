@@ -80,8 +80,14 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == CommonStatusCodes.SUCCESS) {
                 if (data != null) {
                     Barcode barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
-                    Toast.makeText(MainActivity.this, barcode.displayValue, Toast.LENGTH_SHORT).show();
-                    Log.d(TAG, "Barcode read: " + barcode.displayValue);
+                    if (barcode != null) {
+                        Toast.makeText(this, barcode.displayValue, Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Barcode read: " + barcode.displayValue);
+                    }
+                    else {
+                        Log.d(TAG, "Barcode was null");
+                    }
+
                 } else {
                     Log.d(TAG, "No barcode captured, intent data is null");
                 }
