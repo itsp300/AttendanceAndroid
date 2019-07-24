@@ -21,6 +21,11 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.ViewHold
         this.subjectList = subjectList;
     }
 
+    public void updateData(List<Subject> subjectList)
+    {
+        this.subjectList = subjectList;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -32,18 +37,19 @@ public class SubjectAdapter extends RecyclerView.Adapter<SubjectAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Subject subject = subjectList.get(position);
+        if(!subjectList.isEmpty()) {
+            Subject subject = subjectList.get(position);
 
-        holder.subjectCode.setText(subject.getCode());
-        int resourceID = context.getResources().getIdentifier(subject.getThumbnail(), "drawable", context.getPackageName());
-        // Check if the drawable was found, else use placeholder one.
-        if (resourceID == 0)
-        {
-            resourceID = context.getResources().getIdentifier("placeholder", "drawable", context.getPackageName());
+            holder.subjectCode.setText(subject.getCode());
+            int resourceID = context.getResources().getIdentifier(subject.getThumbnail(), "drawable", context.getPackageName());
+            // Check if the drawable was found, else use placeholder one.
+            if (resourceID == 0) {
+                resourceID = context.getResources().getIdentifier("placeholder", "drawable", context.getPackageName());
+            }
+            holder.subjectThumbnail.setImageResource(resourceID);
+            holder.subjectAttendance.setText(Subject.ATTENDANCE_LABEL + subject.getAttendance());
+            holder.subjectTotal.setText(Subject.TOTAL_LABEL + subject.getTotal());
         }
-        holder.subjectThumbnail.setImageResource(resourceID);
-        holder.subjectAttendance.setText(Subject.ATTENDANCE_LABEL + subject.getAttendance());
-        holder.subjectTotal.setText(Subject.TOTAL_LABEL + subject.getTotal());
     }
 
     @Override

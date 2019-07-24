@@ -28,7 +28,6 @@ public class MainActivity extends AppCompatActivity {
 
     FloatingActionButton qrReaderButton;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

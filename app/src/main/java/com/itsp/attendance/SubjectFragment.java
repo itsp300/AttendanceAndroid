@@ -1,5 +1,6 @@
 package com.itsp.attendance;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -7,17 +8,21 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
@@ -26,10 +31,9 @@ public class SubjectFragment extends Fragment {
     private SubjectAdapter subjectAdapter;
     private ArrayList<Subject> subjects;
 
-    public static final String[] subjectThumbnails = {"placeholder", "placeholder", "placeholder", "placeholder", "placeholder"};
-    public static final String[] subjectCodes = {"ITOO211", "ITDA123", "ITCC111", "ITAC100", "ITEF199"};
-    public static final String[] subjectAttendances = {"12", "31", "41", "1", "41"};
-    public static final String[] subjecttotals = {"12", "34", "56", "1", "43"};
+    private JsonObjectRequest subjectObjectRequest;
+
+    private Context context;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -40,43 +44,91 @@ public class SubjectFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_subject, container, false);
 
-        RequestQueue queue = Volley.newRequestQueue(getContext());
-        // NOTE(Morne): 10.10.2.2 is a special host loop back address that only works with an emulator
-        String url ="http://10.0.2.2:1984/resource";
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String url = "http://192.168.188.10:1984/attendances";
 
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
-                new Response.Listener<String>() {
+        subjectObjectRequest = new JsonObjectRequest
+
+                (Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
                     @Override
-                    public void onResponse(String response) {
-                        Log.d(getTag(), response);
+                    public void onResponse(JSONObject response) {
+                        try {
+                            subjects = new ArrayList<>();
+
+                            /* NOTE(Morne): Example of the incoming JSON
+                                {
+                                  "subjectAttendances": [
+                                    {
+                                      "code": "IT00311",
+                                      "attendance": 3,
+                                      "total": 4
+                                    },
+                                    {
+                                      "code": "ITDA211",
+                                      "attendance": 1,
+                                      "total": 5
+                                    }
+                                  ]
+                                }
+                             */
+
+                            JSONArray subjectArray = response.getJSONArray("subjectAttendances");
+                            for (int i = 0; i < subjectArray.length(); i++) {
+                                JSONObject subjectJSON = subjectArray.getJSONObject(i);
+                                Subject subject = new Subject();
+
+                                subject.setCode(subjectJSON.getString("code"));
+                                subject.setAttendance(subjectJSON.getString("attendance"));
+                                subject.setTotal(subjectJSON.getString("total"));
+                                subject.setThumbnail("placeholder");
+
+                                subjects.add(subject);
+
+                            }
+
+                            subjectAdapter.updateData(subjects);
+                            subjectAdapter.notifyDataSetChanged();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
-            }
-        });
-        queue.add(stringRequest);
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO(Morne): Loading symbol?
+                        if(context != null)
+                            Toast.makeText(context, "Failed to fetch data!", Toast.LENGTH_SHORT).show();
+                    }
+                });
 
         subjects = new ArrayList<>();
-        for(int i=0;i<subjectCodes.length;i++)
-        {
-            Subject subject = new Subject();
-            subject.setCode(subjectCodes[i]);
-            subject.setAttendance(subjectAttendances[i]);
-            subject.setTotal(subjecttotals[i]);
-            subject.setThumbnail(subjectThumbnails[i]);
-
-            subjects.add(subject);
-        }
 
         subjectAdapter = new SubjectAdapter(subjects);
 
         subjectRecycler = view.findViewById(R.id.subject_recycler);
-        subjectRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
+        subjectRecycler.setLayoutManager(new LinearLayoutManager(context));
         subjectRecycler.setItemAnimator(new DefaultItemAnimator());
         subjectRecycler.setAdapter(subjectAdapter);
 
+        queue.add(subjectObjectRequest);
+
         return view;
     }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        context.getApplicationContext();
+        this.context = context;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        context = null;
+    }
+
 }

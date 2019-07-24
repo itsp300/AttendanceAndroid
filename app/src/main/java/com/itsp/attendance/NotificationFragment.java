@@ -1,6 +1,7 @@
 package com.itsp.attendance;
 
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class NotificationFragment extends Fragment {
+    private Context context;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -18,4 +20,17 @@ public class NotificationFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_notification, container, false);
     }
 
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        this.context = context;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        context = null;
+    }
 }
