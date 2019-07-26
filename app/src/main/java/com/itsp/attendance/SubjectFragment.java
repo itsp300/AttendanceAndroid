@@ -45,11 +45,11 @@ public class SubjectFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_subject, container, false);
 
         RequestQueue queue = Volley.newRequestQueue(context);
-        String url = "http://192.168.188.10:1984/attendances";
+
 
         subjectObjectRequest = new JsonObjectRequest
 
-                (Request.Method.POST, url, null, new Response.Listener<JSONObject>() {
+                (Request.Method.POST, Config.url, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
@@ -98,7 +98,7 @@ public class SubjectFragment extends Fragment {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // TODO(Morne): Loading symbol?
-                        if(context != null)
+                        if (context != null)
                             Toast.makeText(context, "Failed to fetch data!", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -113,6 +113,7 @@ public class SubjectFragment extends Fragment {
         subjectRecycler.setAdapter(subjectAdapter);
 
         queue.add(subjectObjectRequest);
+
 
         return view;
     }
