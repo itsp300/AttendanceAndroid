@@ -40,3 +40,16 @@ dependencies {
     implementation 'com.google.android.material:material:1.0.0'
     // implementation 'com.google.android.material:material:1.1.0-alpha08'
 }
+
+task createConfig()  {
+    doLast {
+        File configFile = file('src/main/res/raw/config.properties')
+        if(!configFile.exists()) {
+            new File('app/src/main/res/raw/config.properties').text = """
+url=10.0.2.2:5000
+"""
+        }
+    }
+}
+
+preBuild.dependsOn(createConfig)
