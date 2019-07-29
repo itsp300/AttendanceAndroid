@@ -2,16 +2,16 @@ package com.itsp.attendance;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -26,18 +26,22 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class SubjectFragment extends Fragment {
+public class SubjectFragment extends Fragment
+{
+    private static final String TAG = SubjectFragment.class.getName();
+    private Context context;
+
     private RecyclerView subjectRecycler;
     private SubjectAdapter subjectAdapter;
     private ArrayList<Subject> subjects;
 
     private JsonObjectRequest subjectObjectRequest;
 
-    private Context context;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+                             Bundle savedInstanceState)
+    {
 
         // TODO(Morne): Do something about screen rotation. Rotating the screen causes view to go
         // away within the fragment. Probably due to onCreate() in MainActivity being called again.
@@ -46,13 +50,15 @@ public class SubjectFragment extends Fragment {
 
         RequestQueue queue = Volley.newRequestQueue(context);
 
-
+        String api_path = "/attendances";
         subjectObjectRequest = new JsonObjectRequest
-
-                (Request.Method.POST, Config.url, null, new Response.Listener<JSONObject>() {
+                (Request.Method.POST, Config.url + api_path, null, new Response.Listener<JSONObject>()
+                {
                     @Override
-                    public void onResponse(JSONObject response) {
-                        try {
+                    public void onResponse(JSONObject response)
+                    {
+                        try
+                        {
                             subjects = new ArrayList<>();
 
                             /* NOTE(Morne): Example of the incoming JSON
@@ -73,7 +79,8 @@ public class SubjectFragment extends Fragment {
                              */
 
                             JSONArray subjectArray = response.getJSONArray("subjectAttendances");
-                            for (int i = 0; i < subjectArray.length(); i++) {
+                            for (int i = 0; i < subjectArray.length(); i++)
+                            {
                                 JSONObject subjectJSON = subjectArray.getJSONObject(i);
                                 Subject subject = new Subject();
 
@@ -88,18 +95,25 @@ public class SubjectFragment extends Fragment {
 
                             subjectAdapter.updateData(subjects);
                             subjectAdapter.notifyDataSetChanged();
+                            Log.d(TAG, "onResponse: Subject data updated");
 
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                        } catch (JSONException e)
+                        {
+                            Log.e(TAG, "onResponse: Failed to parse JSON: ", e);
                         }
                     }
-                }, new Response.ErrorListener() {
+                }, new Response.ErrorListener()
+                {
 
                     @Override
-                    public void onErrorResponse(VolleyError error) {
+                    public void onErrorResponse(VolleyError error)
+                    {
                         // TODO(Morne): Loading symbol?
                         if (context != null)
+                        {
                             Toast.makeText(context, "Failed to fetch data!", Toast.LENGTH_SHORT).show();
+                        }
+                        Log.e(TAG, "onErrorResponse: Failed to connect to server: " + error.getMessage());
                     }
                 });
 
@@ -119,7 +133,8 @@ public class SubjectFragment extends Fragment {
     }
 
     @Override
-    public void onAttach(Context context) {
+    public void onAttach(Context context)
+    {
         super.onAttach(context);
 
         context.getApplicationContext();
@@ -127,7 +142,8 @@ public class SubjectFragment extends Fragment {
     }
 
     @Override
-    public void onDetach() {
+    public void onDetach()
+    {
         super.onDetach();
         context = null;
     }
