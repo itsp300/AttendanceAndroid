@@ -117,10 +117,11 @@ public class MainActivity extends AppCompatActivity
 
     private void switchFragment(Fragment fragment)
     {
+        Log.d(TAG, "switchFragment: " + fragment);
+
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.fragment_container, fragment);
         fragmentTransaction.commit();
 
-        Log.d(TAG, "switchFragment: " + fragment.getTag());
     }
 }

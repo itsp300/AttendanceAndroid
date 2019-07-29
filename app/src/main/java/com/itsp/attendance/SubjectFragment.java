@@ -48,8 +48,6 @@ public class SubjectFragment extends Fragment
 
         View view = inflater.inflate(R.layout.fragment_subject, container, false);
 
-        RequestQueue queue = Volley.newRequestQueue(context);
-
         String api_path = "/attendances";
         subjectObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, Config.url + api_path, null, new Response.Listener<JSONObject>()
@@ -126,8 +124,7 @@ public class SubjectFragment extends Fragment
         subjectRecycler.setItemAnimator(new DefaultItemAnimator());
         subjectRecycler.setAdapter(subjectAdapter);
 
-        queue.add(subjectObjectRequest);
-
+        VolleySingleton.getInstance(context).addToRequestQueue(subjectObjectRequest);
 
         return view;
     }
