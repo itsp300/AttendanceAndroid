@@ -41,17 +41,17 @@ dependencies {
     // implementation 'com.google.android.material:material:1.1.0-alpha08'
 }
 
-task createConfig()  {
+task createConfig() {
     doLast {
         File configFolder = file('src/main/res/raw')
-        if(!configFolder.exists()) {
+        if (!configFolder.exists()) {
             configFolder.mkdirs()
 
         }
         File configFile = file('src/main/res/raw/config.properties')
-        if(!configFile.exists()) {
+        if (!configFile.exists()) {
             new File('app/src/main/res/raw/config.properties').text = """
-url=10.0.2.2:5000
+url=http://10.0.2.2:5000
 """
         }
 

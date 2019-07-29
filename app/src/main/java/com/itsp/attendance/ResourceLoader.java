@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class RawResourceLoader {
+public class ResourceLoader {
     private static final String TAG = "RawResourceLoader";
 
     public static String loadRawResourceKey(Context context, int path, String key) {
