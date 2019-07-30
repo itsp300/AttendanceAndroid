@@ -11,11 +11,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.itsp.attendance.barcodereader.BarcodeCaptureActivity;
+
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -27,6 +37,7 @@ public class MainActivity extends AppCompatActivity
     NotificationFragment notificationFragment;
 
     FloatingActionButton qrReaderButton;
+    Barcode barcode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -77,7 +88,6 @@ public class MainActivity extends AppCompatActivity
                 startActivityForResult(intent, RC_BARCODE_CAPTURE);
             }
         });
-
     }
 
     @Override
@@ -90,11 +100,47 @@ public class MainActivity extends AppCompatActivity
             {
                 if (data != null)
                 {
-                    Barcode barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
+                    barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
                     if (barcode != null)
                     {
                         Toast.makeText(this, barcode.displayValue, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, "Barcode read: " + barcode.displayValue);
+
+                        Map<String, String> postParam = new HashMap<String, String>();
+                        postParam.put("value", barcode.displayValue);
+
+                        String api_path = "/echo";
+                        JsonObjectRequest qrObjectRequest = new JsonObjectRequest(Request.Method.POST,
+                                Config.url + api_path, new JSONObject(postParam),
+                                new Response.Listener<JSONObject>()
+                                {
+                                    @Override
+                                    public void onResponse(JSONObject response)
+                                    {
+                                        // TODO(Morne): Response should not echo the value sent
+                                        Log.d(TAG, "onResponse: " + response.toString());
+                                    }
+                                }, new Response.ErrorListener()
+                        {
+
+                            @Override
+                            public void onErrorResponse(VolleyError error)
+                            {
+                                Log.e(TAG, "onErrorResponse: " + error.getMessage());
+                            }
+                        })
+                        {
+                            @Override
+                            public Map<String, String> getHeaders() throws AuthFailureError
+                            {
+                                HashMap<String, String> headers = new HashMap<String, String>();
+                                headers.put("Content-Type", "application/json; charset=utf-8");
+                                return headers;
+                            }
+                        };
+
+                        VolleySingleton.getInstance(this).addToRequestQueue(qrObjectRequest);
+
                     } else
                     {
                         Log.d(TAG, "Barcode was null.");
@@ -106,8 +152,7 @@ public class MainActivity extends AppCompatActivity
                 }
             } else
             {
-                //statusMessage.setText(String.format(getString(R.string.barcode_error),
-                // CommonStatusCodes.getStatusCodeString(resultCode)));
+                Log.d(TAG, "onActivityResult: " + CommonStatusCodes.getStatusCodeString(resultCode));
             }
         } else
         {

@@ -14,11 +14,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
-import com.android.volley.RequestQueue;
+
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -36,7 +35,6 @@ public class SubjectFragment extends Fragment
     private ArrayList<Subject> subjects;
 
     private JsonObjectRequest subjectObjectRequest;
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
