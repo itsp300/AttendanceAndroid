@@ -71,22 +71,14 @@
             android:id="@+id/login_button"
             android:layout_width="220dp"
             android:layout_height="wrap_content"
-            android:layout_above="@id/register_text"
-            android:layout_centerHorizontal="true"
             android:layout_marginBottom="20dp"
             android:background="@color/colorPrimaryDark"
-            android:text="Login"
-            android:textColor="@android:color/white" />
-
-        <TextView
-            android:id="@+id/register_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
 
             android:layout_centerHorizontal="true"
-            android:text="Signup for an account"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
+            android:text="Login"
+            android:textColor="@android:color/white" />
+
 
     </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

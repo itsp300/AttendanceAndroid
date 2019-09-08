@@ -14,7 +14,6 @@
 
     </RelativeLayout>
 
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/qr_reader_button"
         android:layout_width="wrap_content"

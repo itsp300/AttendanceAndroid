@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 
 import com.android.volley.Response;
@@ -24,6 +25,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SubjectFragment extends Fragment
 {
@@ -42,7 +45,8 @@ public class SubjectFragment extends Fragment
     {
 
         // TODO(Morne): Do something about screen rotation. Rotating the screen causes view to go
-        // away within the fragment. Probably due to onCreate() in MainActivity being called again.
+        // away within the fragment. Our switchFragment() deletes the fragment causing onCreateView
+        // to be called again
 
         View view = inflater.inflate(R.layout.fragment_subject, container, false);
 
@@ -53,8 +57,7 @@ public class SubjectFragment extends Fragment
                     @Override
                     public void onResponse(JSONObject response)
                     {
-                        try
-                        {
+                        try {
                             subjects = new ArrayList<>();
 
                             /* NOTE(Morne): Example of the incoming JSON
@@ -75,8 +78,7 @@ public class SubjectFragment extends Fragment
                              */
 
                             JSONArray subjectArray = response.getJSONArray("subjectAttendances");
-                            for (int i = 0; i < subjectArray.length(); i++)
-                            {
+                            for (int i = 0; i < subjectArray.length(); i++) {
                                 JSONObject subjectJSON = subjectArray.getJSONObject(i);
                                 Subject subject = new Subject();
 
@@ -93,8 +95,7 @@ public class SubjectFragment extends Fragment
                             subjectAdapter.notifyDataSetChanged();
                             Log.d(TAG, "onResponse: Subject data updated");
 
-                        } catch (JSONException e)
-                        {
+                        } catch (JSONException e) {
                             Log.e(TAG, "onResponse: Failed to parse JSON: ", e);
                         }
                     }
@@ -105,13 +106,22 @@ public class SubjectFragment extends Fragment
                     public void onErrorResponse(VolleyError error)
                     {
                         // TODO(Morne): Loading symbol?
-                        if (context != null)
-                        {
+                        if (context != null) {
                             Toast.makeText(context, "Failed to fetch data!", Toast.LENGTH_SHORT).show();
                         }
                         Log.e(TAG, "onErrorResponse: Failed to connect to server: " + error.getMessage());
                     }
-                });
+                })
+        {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError
+            {
+                HashMap<String, String> headers = new HashMap<String, String>();
+                headers.put("Authorization", "Bearer " + Config.idToken);
+                headers.put("Content-Type", "application/json; charset=utf-8");
+                return headers;
+            }
+        };
 
         subjects = new ArrayList<>();
 
@@ -131,8 +141,7 @@ public class SubjectFragment extends Fragment
     public void onAttach(Context context)
     {
         super.onAttach(context);
-
-        context.getApplicationContext();
+        context = context.getApplicationContext();
         this.context = context;
     }
 
@@ -142,5 +151,4 @@ public class SubjectFragment extends Fragment
         super.onDetach();
         context = null;
     }
-
 }

@@ -1,12 +1,20 @@
 package com.itsp.attendance;
 
+import android.app.ActivityManager;
+import android.app.Dialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -16,6 +24,11 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.auth0.android.Auth0;
+import com.auth0.android.authentication.AuthenticationException;
+import com.auth0.android.provider.AuthCallback;
+import com.auth0.android.provider.WebAuthProvider;
+import com.auth0.android.result.Credentials;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -31,6 +44,12 @@ public class MainActivity extends AppCompatActivity
 {
     private static final String TAG = MainActivity.class.getName();
     private static final int RC_BARCODE_CAPTURE = 9001;
+    final static String CHANNEL_ID = "attendanceNotification";
+
+    Auth0 auth0;
+
+    Intent messageIntent;
+    private MessageService messageService;
 
     HomeFragment homeFragment;
     SubjectFragment subjectFragment;
@@ -45,12 +64,34 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        auth0 = new Auth0(this);
+        auth0.setOIDCConformant(true);
+        login();
+
+        // TODO(Morne): Config read maybe should not exist in release build.
+        Config.url = ResourceLoader.loadRawResourceKey(this, R.raw.config, "url");
+
+        messageService = new MessageService(this);
+        messageIntent = new Intent(this, messageService.getClass());
+        if (!isMyServiceRunning(messageService.getClass())) {
+            //startService(messageIntent);
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = this.getString(R.string.channel_name);
+            String description = this.getResources().getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = this.getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+
         homeFragment = new HomeFragment();
         subjectFragment = new SubjectFragment();
         notificationFragment = new NotificationFragment();
-
-        // NOTE(Morne): Sets the initial fragment to the home_fragment.
-        switchFragment(homeFragment);
 
         BottomNavigationView navigation = findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener()
@@ -88,6 +129,61 @@ public class MainActivity extends AppCompatActivity
                 startActivityForResult(intent, RC_BARCODE_CAPTURE);
             }
         });
+    }
+
+    private void login() {
+        WebAuthProvider.login(auth0)
+                .withScheme("demo")
+                .withAudience(String.format("https://%s/userinfo", getString(R.string.com_auth0_domain)))
+                .start(MainActivity.this, new AuthCallback() {
+                    @Override
+                    public void onFailure(@NonNull final Dialog dialog) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                dialog.show();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(final AuthenticationException exception) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Toast.makeText(MainActivity.this, "Error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onSuccess(@NonNull final Credentials credentials) {
+                        Config.idToken = credentials.getIdToken();
+                        Log.d(TAG, credentials.getIdToken());
+                        // NOTE(Morne): Sets the initial fragment to the home_fragment.
+                        switchFragment(homeFragment);
+                    }
+                });
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                Log.i ("isMyServiceRunning?", true+"");
+                return true;
+            }
+        }
+        Log.i ("isMyServiceRunning?", false+"");
+        return false;
+    }
+
+    @Override
+    protected void onDestroy() {
+        stopService(messageIntent);
+        Log.i(TAG, "onDestroy!");
+        super.onDestroy();
+
     }
 
     @Override
@@ -134,6 +230,7 @@ public class MainActivity extends AppCompatActivity
                             public Map<String, String> getHeaders() throws AuthFailureError
                             {
                                 HashMap<String, String> headers = new HashMap<String, String>();
+                                headers.put("Authorization:", Config.idToken);
                                 headers.put("Content-Type", "application/json; charset=utf-8");
                                 return headers;
                             }

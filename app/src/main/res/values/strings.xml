@@ -6,6 +6,12 @@
     <string name="attendance">Attendance</string>
     <string name="ok">OK</string>
 
+    <string name="com_auth0_client_id">ClientID</string>
+    <string name="com_auth0_domain">itsp300.auth0.com</string>
+
+    <string name="channel_name">Attendance Notification</string>
+    <string name="channel_description">Notifications regarding student attendances</string>
+
     <string name="permission_camera_rationale">Access to the camera is needed for detection</string>
 
     <string name="no_camera_permission">This application cannot run because it does not have the camera permission. The application will now exit.</string>
