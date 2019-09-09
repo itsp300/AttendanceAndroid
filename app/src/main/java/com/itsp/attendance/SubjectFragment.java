@@ -86,8 +86,7 @@ public class SubjectFragment extends Fragment
                                 subject.setCode(subjectJSON.getString("subjectCode"));
                                 subject.setAttendance(subjectJSON.getString("attendanceTotal"));
                                 subject.setTotal(subjectJSON.getString("lectureTotal"));
-                                subject.setThumbnail("imageName");
-
+                                subject.setThumbnail(subjectJSON.getString("imageName"));
                                 subjects.add(subject);
 
                             }
