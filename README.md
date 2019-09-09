@@ -39,23 +39,44 @@ A handy app that allows you to view your attendance data.
   ```
 * ### /api/secure/messages
   * Shows a list of messages received by the device like notifications.
+  * Messages that are returned are saved on the database (Most likely will need to be changed to store messages locally).
   * Called when user loads the messages page.
   * Incoming JSON
   ```javascript
-  {
-  "title": "New Attendance Entry",
-  "description": "You have been registered for class ITO311!"
+   {
+   "messages": 
+   [
+     {
+       "title": "ITOO312 Attendance Noted",
+       "description": "You have successfully been registered for class ITOO312!",
+     },
+     {
+       "title": "ITOO312 Attendance Noted",
+       "description": "You have successfully been registered for class ITOO312!",
+     }
+   ]
   }
   ```
 * ### /api/secure/notifications
   * Displays a list of new notifications.
+  * Notifications do not need to persist in a database. Send and forget.
   * Called every second.
   * Incoming JSON
   ```javascript
   {
-  "title": "ITOO312 Attendance Noted",
-  "description": "You have successfully been registered for class ITOO312!",
-  "icon": "normal"
+   "notifications": 
+   [
+     {
+       "title": "ITOO312 Attendance Noted",
+       "description": "You have successfully been registered for class ITOO312!",
+       "icon": "normal"
+     },
+     {
+       "title": "ITOO312 Attendance Noted",
+       "description": "You have successfully been registered for class ITOO312!",
+       "icon": "normal"
+     }
+   ]
   }
   ```
 * ### /api/secure/qrCode
