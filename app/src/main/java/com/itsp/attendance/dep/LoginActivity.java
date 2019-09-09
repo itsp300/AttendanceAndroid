@@ -1,4 +1,4 @@
-package com.itsp.attendance;
+package com.itsp.attendance.dep;
 
 
 import android.content.Intent;
@@ -11,6 +11,8 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.itsp.attendance.*;
 
 
 public class LoginActivity extends AppCompatActivity
