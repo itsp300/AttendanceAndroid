@@ -131,10 +131,10 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private void login() {
+    public void login() {
         WebAuthProvider.login(auth0)
                 .withScheme("demo")
-                .withAudience(String.format("https://%s/userinfo", getString(R.string.com_auth0_domain)))
+                .withAudience("backend.itsp300.com")
                 .start(MainActivity.this, new AuthCallback() {
                     @Override
                     public void onFailure(@NonNull final Dialog dialog) {
@@ -158,8 +158,8 @@ public class MainActivity extends AppCompatActivity
 
                     @Override
                     public void onSuccess(@NonNull final Credentials credentials) {
-                        Config.idToken = credentials.getIdToken();
-                        Log.d(TAG, credentials.getIdToken());
+                        Config.accessToken = credentials.getAccessToken();
+                        Log.d(TAG, "Access Token: " + credentials.getAccessToken());
                         // NOTE(Morne): Sets the initial fragment to the home_fragment.
                         switchFragment(homeFragment);
                     }
@@ -203,7 +203,7 @@ public class MainActivity extends AppCompatActivity
                         Log.d(TAG, "Barcode read: " + barcode.displayValue);
 
                         Map<String, String> postParam = new HashMap<String, String>();
-                        postParam.put("value", barcode.displayValue);
+                        postParam.put("qrCode", barcode.displayValue);
 
                         String api_path = "/echo";
                         JsonObjectRequest qrObjectRequest = new JsonObjectRequest(Request.Method.POST,
@@ -223,6 +223,9 @@ public class MainActivity extends AppCompatActivity
                             public void onErrorResponse(VolleyError error)
                             {
                                 Log.e(TAG, "onErrorResponse: " + error.getMessage());
+                                if (error.networkResponse.statusCode != 401) {
+                                    login();
+                                }
                             }
                         })
                         {
@@ -230,7 +233,7 @@ public class MainActivity extends AppCompatActivity
                             public Map<String, String> getHeaders() throws AuthFailureError
                             {
                                 HashMap<String, String> headers = new HashMap<String, String>();
-                                headers.put("Authorization:", Config.idToken);
+                                headers.put("Authorization:", Config.accessToken);
                                 headers.put("Content-Type", "application/json; charset=utf-8");
                                 return headers;
                             }
@@ -264,6 +267,5 @@ public class MainActivity extends AppCompatActivity
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.fragment_container, fragment);
         fragmentTransaction.commit();
-
     }
 }

@@ -30,7 +30,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MessageService extends Service {
-    String api_path = "/notification";
+    String api_path = "/api/private";
     ArrayList<Notification> notifications;
     final static String TAG = "MessageService";
     JsonObjectRequest notificationObjectRequest;
@@ -97,6 +97,10 @@ public class MessageService extends Service {
                     {
                         // TODO(Morne): Loading symbol?
                         Log.e(TAG, "onErrorResponse: Failed to connect to server: " + error.getMessage());
+                        if (error.networkResponse.data != null) {
+                            String s = new String(error.networkResponse.data);
+                            Log.e(TAG, "onErrorResponse data: " + s);
+                        }
                     }
                 })
         {
@@ -104,7 +108,7 @@ public class MessageService extends Service {
             public Map<String, String> getHeaders() throws AuthFailureError
             {
                 HashMap<String, String> headers = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer "+ Config.idToken);
+                headers.put("Authorization", "Bearer "+ Config.accessToken);
                 headers.put("Content-Type", "application/json; charset=utf-8");
                 return headers;
             }

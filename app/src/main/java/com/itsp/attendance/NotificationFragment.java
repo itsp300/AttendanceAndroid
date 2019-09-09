@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -51,7 +52,7 @@ public class NotificationFragment extends Fragment
 
         String api_path = "/notificationFragment";
         notificationObjectRequest = new JsonObjectRequest
-                (Request.Method.POST, "http://10.0.2.2:5000" , null, new Response.Listener<JSONObject>()
+                (Request.Method.POST, Config.url + api_path , null, new Response.Listener<JSONObject>()
                 {
                     @Override
                     public void onResponse(JSONObject response)
@@ -59,7 +60,7 @@ public class NotificationFragment extends Fragment
                         try {
                             notifications = new ArrayList<>();
 
-                            JSONArray notificationArray = response.getJSONArray("Notifications");
+                            JSONArray notificationArray = response.getJSONArray("messages");
                             for (int i = 0; i < notificationArray.length(); i++) {
                                 JSONObject notificationJSON = notificationArray.getJSONObject(i);
                                 Notification notification = new Notification();
@@ -85,11 +86,28 @@ public class NotificationFragment extends Fragment
                     @Override
                     public void onErrorResponse(VolleyError error)
                     {
-                        // TODO(Morne): Loading symbol?
-                        if (context != null) {
-                            Toast.makeText(context, "Failed to fetch data!", Toast.LENGTH_SHORT).show();
+                        NetworkResponse networkResponse = error.networkResponse;
+                        if(context != null)
+                        {
+                            if(networkResponse != null)
+                            {
+                                String data = new String(networkResponse.data);
+                                Log.e(TAG, "onErrorResponse:\nbody:\n" + data);
+
+                                if(networkResponse.statusCode == 500 || networkResponse.statusCode == 401)
+                                {
+                                    ((MainActivity)getActivity()).login();
+                                }
+                                else
+                                {
+                                    Toast.makeText(context, "Network error!", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                            else
+                            {
+                                Toast.makeText(context, "Network error!\nNo response received!", Toast.LENGTH_SHORT).show();
+                            }
                         }
-                        Log.e(TAG, "onErrorResponse: Failed to connect to server: " + error.getMessage());
                     }
                 })
         {
@@ -97,7 +115,7 @@ public class NotificationFragment extends Fragment
             public Map<String, String> getHeaders() throws AuthFailureError
             {
                 HashMap<String, String> headers = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer "+ Config.idToken);
+                headers.put("Authorization", "Bearer "+ Config.accessToken);
                 headers.put("Content-Type", "application/json; charset=utf-8");
                 return headers;
             }

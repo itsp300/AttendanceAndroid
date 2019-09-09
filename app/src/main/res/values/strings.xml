@@ -6,7 +6,7 @@
     <string name="attendance">Attendance</string>
     <string name="ok">OK</string>
 
-    <string name="com_auth0_client_id">ClientID</string>
+    <string name="com_auth0_client_id">5ozYqOOkpWwHadUVBpr8NpZlw9EX5pPD</string>
     <string name="com_auth0_domain">itsp300.auth0.com</string>
 
     <string name="channel_name">Attendance Notification</string>

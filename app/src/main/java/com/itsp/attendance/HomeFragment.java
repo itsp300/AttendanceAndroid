@@ -1,6 +1,5 @@
 package com.itsp.attendance;
 
-
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
@@ -16,6 +15,7 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -49,7 +49,6 @@ public class HomeFragment extends Fragment
                              Bundle savedInstanceState)
     {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
-
         studentNameText = view.findViewById(R.id.home_student_name);
         attendanceTotalText = view.findViewById(R.id.home_attendance_total);
         lectureTotalText = view.findViewById(R.id.home_lecture_total);
@@ -65,13 +64,15 @@ public class HomeFragment extends Fragment
         ratingAnimation.setDuration(1000);
         rating.startAnimation(ratingAnimation);
 
-        String api_path = "/api/private";
+        String api_path = "/api/secure/summary";
         summaryObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, Config.url + api_path, null, new Response.Listener<JSONObject>()
                 {
                     @Override
                     public void onResponse(JSONObject response)
                     {
+                        Log.e(TAG, "onResponse: " + response.toString());
+
                         try {
                             Log.d(TAG, "onResponse: " + response.toString());
                             int attendanceTotal = response.getInt("attendanceTotal");
@@ -79,15 +80,16 @@ public class HomeFragment extends Fragment
                             int missedTotal = 0;
 
                             missedTotal = lectureTotal - attendanceTotal;
-                            int percentage = (int) (((float) lectureTotal / (float) attendanceTotal) * 100);
+                            //int percentage =  (int)((((float)attendanceTotal /(float) lectureTotal) * 100f)) + 1;
+                            float percentage = (((float)attendanceTotal /(float) lectureTotal) * 100f);
 
                             studentNameText.setText(STUDENTNAMELABEL + response.getString("studentName"));
                             attendanceTotalText.setText(ATTENDANCETOTALLABEL + attendanceTotal);
                             lectureTotalText.setText(LECTURETOTALLABEL + lectureTotal);
                             missedTotalText.setText(MISSEDTOTALLABEL + missedTotal);
-
                             ratingPercentageText.setText(percentage + "%");
-                            int level = 100 * percentage;   // pct goes from 0 to 100
+
+                            int level = (int) Math.ceil(percentage) * 100;   // pct goes from 0 to 100
 
                             ratingFillAnimation ratingAnimation = new ratingFillAnimation(rating, 0, level);
                             ratingAnimation.setDuration(1000);
@@ -101,18 +103,31 @@ public class HomeFragment extends Fragment
                     }
                 }, new Response.ErrorListener()
                 {
-
                     @Override
                     public void onErrorResponse(VolleyError error)
                     {
-                        // TODO(Morne): Loading symbol?
-                        if (context != null) {
-                            Toast.makeText(context, "Failed to fetch data!", Toast.LENGTH_SHORT).show();
-                        }
+                        NetworkResponse networkResponse = error.networkResponse;
+                        if(context != null)
+                        {
+                            if(networkResponse != null)
+                            {
+                                String data = new String(networkResponse.data);
+                                Log.e(TAG, "onErrorResponse:\nbody:\n" + data);
 
-                        Log.e(TAG, "onErrorResponse: Failed to connect to server: " + error.getMessage());
-                        Log.e(TAG, "onErrorResponse: Failed to connect to server: " +  error.toString());
-                        Log.e(TAG, error.networkResponse.data.toString());
+                                if(networkResponse.statusCode == 500 || networkResponse.statusCode == 401)
+                                {
+                                    ((MainActivity)getActivity()).login();
+                                }
+                                else
+                                {
+                                    Toast.makeText(context, "Network error!", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                            else
+                            {
+                                Toast.makeText(context, "Network error!\nNo response received!", Toast.LENGTH_SHORT).show();
+                            }
+                        }
                     }
                 })
         {
@@ -120,7 +135,7 @@ public class HomeFragment extends Fragment
             public Map<String, String> getHeaders() throws AuthFailureError
             {
                 HashMap<String, String> headers = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer " + Config.idToken);
+                headers.put("Authorization", "Bearer " + Config.accessToken);
                 headers.put("Content-Type", "application/json; charset=utf-8");
                 return headers;
             }
@@ -151,7 +166,7 @@ public class HomeFragment extends Fragment
             super.applyTransformation(interpolatedTime, t);
             float value = from + (to - from) * interpolatedTime;
             rating.setImageLevel((int) value);
-            ratingPercentageText.setText((int) (value / 100) + "%");
+//            ratingPercentageText.setText((int) (value / 100) + "%");
         }
 
     }
@@ -170,5 +185,4 @@ public class HomeFragment extends Fragment
         super.onDetach();
         context = null;
     }
-
 }

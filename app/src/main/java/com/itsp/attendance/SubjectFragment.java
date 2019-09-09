@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 
 import com.android.volley.Response;
@@ -50,7 +51,7 @@ public class SubjectFragment extends Fragment
 
         View view = inflater.inflate(R.layout.fragment_subject, container, false);
 
-        String api_path = "/attendances";
+        String api_path = "/api/secure/subjectAttendances";
         subjectObjectRequest = new JsonObjectRequest
                 (Request.Method.POST, Config.url + api_path, null, new Response.Listener<JSONObject>()
                 {
@@ -82,10 +83,10 @@ public class SubjectFragment extends Fragment
                                 JSONObject subjectJSON = subjectArray.getJSONObject(i);
                                 Subject subject = new Subject();
 
-                                subject.setCode(subjectJSON.getString("code"));
-                                subject.setAttendance(subjectJSON.getString("attendance"));
-                                subject.setTotal(subjectJSON.getString("total"));
-                                subject.setThumbnail("placeholder");
+                                subject.setCode(subjectJSON.getString("subjectCode"));
+                                subject.setAttendance(subjectJSON.getString("attendanceTotal"));
+                                subject.setTotal(subjectJSON.getString("lectureTotal"));
+                                subject.setThumbnail("imageName");
 
                                 subjects.add(subject);
 
@@ -105,11 +106,28 @@ public class SubjectFragment extends Fragment
                     @Override
                     public void onErrorResponse(VolleyError error)
                     {
-                        // TODO(Morne): Loading symbol?
-                        if (context != null) {
-                            Toast.makeText(context, "Failed to fetch data!", Toast.LENGTH_SHORT).show();
+                        NetworkResponse networkResponse = error.networkResponse;
+                        if(context != null)
+                        {
+                            if(networkResponse != null)
+                            {
+                                String data = new String(networkResponse.data);
+                                Log.e(TAG, "onErrorResponse:\nbody:\n" + data);
+
+                                if(networkResponse.statusCode == 500 || networkResponse.statusCode == 401)
+                                {
+                                    ((MainActivity)getActivity()).login();
+                                }
+                                else
+                                {
+                                    Toast.makeText(context, "Network error!", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                            else
+                            {
+                                Toast.makeText(context, "Network error!\nNo response received!", Toast.LENGTH_SHORT).show();
+                            }
                         }
-                        Log.e(TAG, "onErrorResponse: Failed to connect to server: " + error.getMessage());
                     }
                 })
         {
@@ -117,7 +135,7 @@ public class SubjectFragment extends Fragment
             public Map<String, String> getHeaders() throws AuthFailureError
             {
                 HashMap<String, String> headers = new HashMap<String, String>();
-                headers.put("Authorization", "Bearer " + Config.idToken);
+                headers.put("Authorization", "Bearer " + Config.accessToken);
                 headers.put("Content-Type", "application/json; charset=utf-8");
                 return headers;
             }

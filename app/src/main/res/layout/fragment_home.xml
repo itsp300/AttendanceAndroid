@@ -74,7 +74,7 @@
                     android:id="@+id/home_student_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Student: Morne"
+                    android:text="Student:"
                     android:textSize="18sp" />
 
                 <TextView
