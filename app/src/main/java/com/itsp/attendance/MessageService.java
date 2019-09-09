@@ -113,6 +113,8 @@ public class MessageService extends Service {
                 return headers;
             }
         };
+
+
     }
 
     @Override
@@ -147,7 +149,7 @@ public class MessageService extends Service {
                 Log.i("MessageService:", " Running");
                 VolleySingleton.getInstance(getApplicationContext()).addToRequestQueue(notificationObjectRequest);
 
-                /*Test code for notifications
+                /*Test code for notifications */
                 try
                 {
                     notifications = new ArrayList<>();
@@ -201,7 +203,7 @@ public class MessageService extends Service {
                     Log.e(TAG, "onResponse: Failed to parse JSON: ", e);
                 }
 
-                 */
+                 /**/
             }
         };
     }

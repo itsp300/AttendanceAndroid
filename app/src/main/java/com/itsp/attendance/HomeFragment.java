@@ -71,8 +71,6 @@ public class HomeFragment extends Fragment
                     @Override
                     public void onResponse(JSONObject response)
                     {
-                        Log.e(TAG, "onResponse: " + response.toString());
-
                         try {
                             Log.d(TAG, "onResponse: " + response.toString());
                             int attendanceTotal = response.getInt("attendanceTotal");
@@ -82,7 +80,6 @@ public class HomeFragment extends Fragment
                             missedTotal = lectureTotal - attendanceTotal;
                             //int percentage =  (int)((((float)attendanceTotal /(float) lectureTotal) * 100f)) + 1;
                             float percentage = (((float)attendanceTotal /(float) lectureTotal) * 100f);
-
                             studentNameText.setText(STUDENTNAMELABEL + response.getString("studentName"));
                             attendanceTotalText.setText(ATTENDANCETOTALLABEL + attendanceTotal);
                             lectureTotalText.setText(LECTURETOTALLABEL + lectureTotal);

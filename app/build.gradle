@@ -43,6 +43,13 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.core:core:1.1.0'
+    implementation("com.squareup.okhttp3:okhttp:4.1.1")
+
+    implementation group: 'com.auth0', name: 'java-jwt', version: '3.7.0'
+    implementation 'io.jsonwebtoken:jjwt-api:0.10.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.10.5',
+            'io.jsonwebtoken:jjwt-jackson:0.10.5'
+
     // implementation 'com.google.android.material:material:1.1.0-alpha08'
 }
 
