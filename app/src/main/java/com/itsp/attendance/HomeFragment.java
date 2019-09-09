@@ -54,7 +54,7 @@ public class HomeFragment extends Fragment
         lectureTotalText = view.findViewById(R.id.home_lecture_total);
         missedTotalText = view.findViewById(R.id.home_missed_total);
 
-        int percentage = 70;
+        int percentage = 0;
         ratingPercentageText = view.findViewById(R.id.rating_percentage);
         ratingPercentageText.setText(percentage + "%");
         int level = 100 * percentage;   // pct goes from 0 to 100
@@ -164,9 +164,18 @@ public class HomeFragment extends Fragment
         protected void applyTransformation(float interpolatedTime, Transformation t)
         {
             super.applyTransformation(interpolatedTime, t);
-            float value = from + (to - from) * interpolatedTime;
+            
+            float value = (float) smoothStep(from, 1, ((to/10000)*interpolatedTime))*10000;//from + (to - from) * interpolatedTime;
             rating.setImageLevel((int) value);
-//            ratingPercentageText.setText((int) (value / 100) + "%");
+        }
+        
+        public  double clamp(double value, double min, double max) {
+            return Math.max(min, Math.min(value, max));
+        }
+        public  double smoothStep(double start, double end, double amount) {
+            amount = clamp(amount, 0, 1);
+            amount = clamp((amount - start) / (end - start), 0, 1);
+            return amount * amount * (3 - 2 * amount);
         }
 
     }
