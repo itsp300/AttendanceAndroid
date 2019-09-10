@@ -109,7 +109,9 @@ public class MessageService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-        startTimer();
+        new MessageWebSocket().run();
+
+        // startTimer(); Timer for the POST request
         return START_STICKY;
     }
     

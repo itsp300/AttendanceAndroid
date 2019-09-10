@@ -2,6 +2,7 @@ package com.itsp.attendance;
 
 import android.os.Build;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -15,8 +16,6 @@ import org.json.JSONObject;
 
 import java.util.concurrent.TimeUnit;
 
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.impl.DefaultJwtBuilder;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -32,9 +31,8 @@ public class MessageWebSocket  extends WebSocketListener
                 .readTimeout(0,  TimeUnit.MILLISECONDS)
                 .build();
 
-        String api_path = "/api/secure/notifications";
         Request request = new Request.Builder()
-                .url("TODO")
+                .url(Config.urlSocket)
                 .build();
         client.newWebSocket(request, this);
 
@@ -54,8 +52,8 @@ public class MessageWebSocket  extends WebSocketListener
                 String token = JWT.create().withClaim("asdasd", "aqwerqwer")
                         .sign(algorithm);
                 webSocket.send(token);
-                System.out.println("Socket Token: " + token);
 
+                Log.d(TAG, "onOpen: " + "Socket Token: " + token);
             } catch (JWTCreationException exception){
                 //Invalid Signing configuration / Couldn't convert Claims.
             }

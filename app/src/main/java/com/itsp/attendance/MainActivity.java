@@ -70,8 +70,7 @@ public class MainActivity extends AppCompatActivity
 
         // TODO(Morne): Config read maybe should not exist in release build.
         Config.url = ResourceLoader.loadRawResourceKey(this, R.raw.config, "url");
-
-        //new MessageWebSocket().run();
+        Config.urlSocket = ResourceLoader.loadRawResourceKey(this, R.raw.config, "urlSocket");
 
         messageService = new MessageService(this);
         messageIntent = new Intent(this, messageService.getClass());
