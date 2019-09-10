@@ -61,8 +61,8 @@ public class HomeFragment extends Fragment
         rating = view.findViewById(R.id.rating_image);
 
         ratingFillAnimation ratingAnimation = new ratingFillAnimation(rating, 0, level);
-        ratingAnimation.setDuration(1000);
-        rating.startAnimation(ratingAnimation);
+//        ratingAnimation.setDuration(1000);
+//        rating.startAnimation(ratingAnimation);
 
         String api_path = "/api/secure/summary";
         summaryObjectRequest = new JsonObjectRequest

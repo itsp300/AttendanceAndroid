@@ -207,7 +207,7 @@ public class MainActivity extends AppCompatActivity
                         Map<String, String> postParam = new HashMap<String, String>();
                         postParam.put("qrCode", barcode.displayValue);
 
-                        String api_path = "/echo";
+                        String api_path = "/scan_code";
                         JsonObjectRequest qrObjectRequest = new JsonObjectRequest(Request.Method.POST,
                                 Config.url + api_path, new JSONObject(postParam),
                                 new Response.Listener<JSONObject>()
@@ -235,7 +235,7 @@ public class MainActivity extends AppCompatActivity
                             public Map<String, String> getHeaders() throws AuthFailureError
                             {
                                 HashMap<String, String> headers = new HashMap<String, String>();
-                                headers.put("Authorization:", Config.accessToken);
+                                headers.put("Authorization", "Bearer " + Config.accessToken);
                                 headers.put("Content-Type", "application/json; charset=utf-8");
                                 return headers;
                             }
