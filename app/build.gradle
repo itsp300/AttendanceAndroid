@@ -64,6 +64,7 @@ task createConfig() {
         if (!configFile.exists()) {
             new File('app/src/main/res/raw/config.properties').text = """
 url=http://10.0.2.2:5000
+urlSocket=http://10.0.2.2:5001
 """
         }
 
