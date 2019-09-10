@@ -110,7 +110,7 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
             requestCameraPermission();
         }
 
-        gestureDetector = new GestureDetector(this, new CaptureGestureListener());
+        //gestureDetector = new GestureDetector(this, new CaptureGestureListener());
         scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
 
         Snackbar.make(mGraphicOverlay, "Tap to capture. Pinch/Stretch to zoom",
@@ -439,5 +439,11 @@ public final class BarcodeCaptureActivity extends AppCompatActivity implements B
     @Override
     public void onBarcodeDetected(Barcode barcode) {
         //do something with barcode data returned
+        if (barcode != null) {
+            Intent data = new Intent();
+            data.putExtra(BarcodeObject, barcode);
+            setResult(CommonStatusCodes.SUCCESS, data);
+            finish();
+        }
     }
 }

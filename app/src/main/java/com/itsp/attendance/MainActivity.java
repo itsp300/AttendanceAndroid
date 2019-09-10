@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -72,6 +73,8 @@ public class MainActivity extends AppCompatActivity
         Config.url = ResourceLoader.loadRawResourceKey(this, R.raw.config, "url");
         Config.urlSocket = ResourceLoader.loadRawResourceKey(this, R.raw.config, "urlSocket");
 
+        new MessageWebSocket().run();
+
         messageService = new MessageService(this);
         messageIntent = new Intent(this, messageService.getClass());
         if (!isMyServiceRunning(messageService.getClass())) {
@@ -100,8 +103,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onNavigationItemSelected(MenuItem item)
             {
-                switch (item.getItemId())
-                {
+                switch (item.getItemId()) {
                     case R.id.navigation_home:
                         switchFragment(homeFragment);
                         return true;
@@ -132,33 +134,42 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    public void login() {
+    public void login()
+    {
         WebAuthProvider.login(auth0)
                 .withScheme("demo")
                 .withAudience("backend.itsp300.com")
-                .start(MainActivity.this, new AuthCallback() {
+                .start(MainActivity.this, new AuthCallback()
+                {
                     @Override
-                    public void onFailure(@NonNull final Dialog dialog) {
-                        runOnUiThread(new Runnable() {
+                    public void onFailure(@NonNull final Dialog dialog)
+                    {
+                        runOnUiThread(new Runnable()
+                        {
                             @Override
-                            public void run() {
+                            public void run()
+                            {
                                 dialog.show();
                             }
                         });
                     }
 
                     @Override
-                    public void onFailure(final AuthenticationException exception) {
-                        runOnUiThread(new Runnable() {
+                    public void onFailure(final AuthenticationException exception)
+                    {
+                        runOnUiThread(new Runnable()
+                        {
                             @Override
-                            public void run() {
+                            public void run()
+                            {
                                 Toast.makeText(MainActivity.this, "Error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
                             }
                         });
                     }
 
                     @Override
-                    public void onSuccess(@NonNull final Credentials credentials) {
+                    public void onSuccess(@NonNull final Credentials credentials)
+                    {
                         Config.accessToken = credentials.getAccessToken();
                         Log.d(TAG, "Access Token: " + credentials.getAccessToken());
                         // NOTE(Morne): Sets the initial fragment to the home_fragment.
@@ -167,20 +178,22 @@ public class MainActivity extends AppCompatActivity
                 });
     }
 
-    private boolean isMyServiceRunning(Class<?> serviceClass) {
+    private boolean isMyServiceRunning(Class<?> serviceClass)
+    {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
             if (serviceClass.getName().equals(service.service.getClassName())) {
-                Log.i ("isMyServiceRunning?", true+"");
+                Log.i("isMyServiceRunning?", true + "");
                 return true;
             }
         }
-        Log.i ("isMyServiceRunning?", false+"");
+        Log.i("isMyServiceRunning?", false + "");
         return false;
     }
 
     @Override
-    protected void onDestroy() {
+    protected void onDestroy()
+    {
         stopService(messageIntent);
         Log.i(TAG, "onDestroy!");
         super.onDestroy();
@@ -191,22 +204,18 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         // Barcode result
-        if (requestCode == RC_BARCODE_CAPTURE)
-        {
-            if (resultCode == CommonStatusCodes.SUCCESS)
-            {
-                if (data != null)
-                {
+        if (requestCode == RC_BARCODE_CAPTURE) {
+            if (resultCode == CommonStatusCodes.SUCCESS) {
+                if (data != null) {
                     barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
-                    if (barcode != null)
-                    {
+                    if (barcode != null) {
                         Toast.makeText(this, barcode.displayValue, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, "Barcode read: " + barcode.displayValue);
 
                         Map<String, String> postParam = new HashMap<String, String>();
                         postParam.put("qrCode", barcode.displayValue);
 
-                        String api_path = "/scan_code";
+                        String api_path = "/api/secure/scan_code";
                         JsonObjectRequest qrObjectRequest = new JsonObjectRequest(Request.Method.POST,
                                 Config.url + api_path, new JSONObject(postParam),
                                 new Response.Listener<JSONObject>()
@@ -223,9 +232,18 @@ public class MainActivity extends AppCompatActivity
                             @Override
                             public void onErrorResponse(VolleyError error)
                             {
-                                Log.e(TAG, "onErrorResponse: " + error.getMessage());
-                                if (error.networkResponse.statusCode != 401) {
-                                    login();
+                                NetworkResponse networkResponse = error.networkResponse;
+                                if (networkResponse != null) {
+                                    String data = new String(networkResponse.data);
+                                    Log.e(TAG, "onErrorResponse:\nbody:\n" + data);
+
+                                    if (networkResponse.statusCode == 500 || networkResponse.statusCode == 401) {
+                                        login();
+                                    } else {
+                                        Toast.makeText(MainActivity.this, "Network error!", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(MainActivity.this, "Network error!\nNo response received!", Toast.LENGTH_SHORT).show();
                                 }
                             }
                         })
@@ -242,21 +260,17 @@ public class MainActivity extends AppCompatActivity
 
                         VolleySingleton.getInstance(this).addToRequestQueue(qrObjectRequest);
 
-                    } else
-                    {
+                    } else {
                         Log.d(TAG, "Barcode was null.");
                     }
 
-                } else
-                {
+                } else {
                     Log.d(TAG, "No barcode captured, intent data is null.");
                 }
-            } else
-            {
+            } else {
                 Log.d(TAG, "onActivityResult: " + CommonStatusCodes.getStatusCodeString(resultCode));
             }
-        } else
-        {
+        } else {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
