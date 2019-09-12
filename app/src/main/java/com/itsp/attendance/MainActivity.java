@@ -41,6 +41,10 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+/* TODO LIST:
+    - Check to see if QR code text is not displayed when scanned.
+    - Check android version compatibility.
+*/
 public class MainActivity extends AppCompatActivity
 {
     private static final String TAG = MainActivity.class.getName();
@@ -73,7 +77,7 @@ public class MainActivity extends AppCompatActivity
         Config.url = ResourceLoader.loadRawResourceKey(this, R.raw.config, "url");
         Config.urlSocket = ResourceLoader.loadRawResourceKey(this, R.raw.config, "urlSocket");
 
-        new MessageWebSocket().run();
+        //new MessageWebSocket().run();
 
         messageService = new MessageService(this);
         messageIntent = new Intent(this, messageService.getClass());

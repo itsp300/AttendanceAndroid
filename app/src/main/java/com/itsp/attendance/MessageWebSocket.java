@@ -1,15 +1,10 @@
 package com.itsp.attendance;
 
-import android.os.Build;
-import android.util.Base64;
 import android.util.Log;
-
-import androidx.annotation.RequiresApi;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,7 +56,6 @@ public class MessageWebSocket  extends WebSocketListener
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override public void onMessage(WebSocket webSocket, String text) {

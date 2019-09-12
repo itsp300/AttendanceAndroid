@@ -110,8 +110,8 @@ public class MessageService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        // new MessageWebSocket().run();
-        // startTimer(); Timer for the POST request
+        new MessageWebSocket().run();
+        // startTimer(); //Timer for the POST request
         return START_STICKY;
     }
     
@@ -132,7 +132,7 @@ public class MessageService extends Service {
         initializeTimerTask();
         
         //schedule the timer, to wake up every 1 second
-//        timer.schedule(timerTask, 2000, 2000); //
+        timer.schedule(timerTask, 2000, 2000); //
     }
     
     public void initializeTimerTask() {
