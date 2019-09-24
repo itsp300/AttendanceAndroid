@@ -34,6 +34,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 /*
     Overall TODO list:
     - Test more devices to ensure CredentialManager is reliable across all of them.
+    - Content is hidden behind navigation bar at bottom for recycler views (e.g. Home fragment)
 
  */
 

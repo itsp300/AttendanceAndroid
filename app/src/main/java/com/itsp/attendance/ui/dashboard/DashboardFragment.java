@@ -44,11 +44,6 @@ public class DashboardFragment extends Fragment
             @Override
             public void onChanged(@Nullable DashboardData newData)
             {
-                Utility.ASSERT(newData.studentName != null);
-                Utility.ASSERT(newData.attendedTotal != null);
-                Utility.ASSERT(newData.classTotal != null);
-                Utility.ASSERT(newData.missedTotal != null);
-
                 textStudentName.setText(newData.studentName);
                 textAttendedTotal.setText(newData.attendedTotal);
                 textClassTotal.setText(newData.classTotal);
