@@ -6,9 +6,10 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -71,21 +72,25 @@ public class MainActivity extends AppCompatActivity
 
         auth0 = new Auth0(this);
         auth0.setOIDCConformant(true);
-        login();
+        //login();
 
-        // TODO(Morne): Config read maybe should not exist in release build.
         Config.url = ResourceLoader.loadRawResourceKey(this, R.raw.config, "url");
         Config.urlSocket = ResourceLoader.loadRawResourceKey(this, R.raw.config, "urlSocket");
 
-        //new MessageWebSocket().run();
+        // NOTE(Morne): Loads the access token that is stored locally
+        final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        Config.accessToken = sharedPref.getString("accessToken", ResourceLoader.loadRawResourceKey(this, R.raw.config, "invalidAccessToken"));
 
         messageService = new MessageService(this);
         messageIntent = new Intent(this, messageService.getClass());
-        if (!isMyServiceRunning(messageService.getClass())) {
+        if (!isMyServiceRunning(messageService.getClass()))
+        {
             startService(messageIntent);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        // TODO(Morne): Check for compatible version of this
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
             CharSequence name = this.getString(R.string.channel_name);
             String description = this.getResources().getString(R.string.channel_description);
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
@@ -107,7 +112,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onNavigationItemSelected(MenuItem item)
             {
-                switch (item.getItemId()) {
+                switch (item.getItemId())
+                {
                     case R.id.navigation_home:
                         switchFragment(homeFragment);
                         return true;
@@ -176,7 +182,12 @@ public class MainActivity extends AppCompatActivity
                     {
                         Config.accessToken = credentials.getAccessToken();
                         Log.d(TAG, "Access Token: " + credentials.getAccessToken());
-                        // NOTE(Morne): Sets the initial fragment to the home_fragment.
+
+                        final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                        SharedPreferences.Editor editor = sharedPref.edit();
+                        editor.putString("accessToken", Config.accessToken);
+                        editor.apply();
+
                         switchFragment(homeFragment);
                     }
                 });
@@ -185,8 +196,10 @@ public class MainActivity extends AppCompatActivity
     private boolean isMyServiceRunning(Class<?> serviceClass)
     {
         ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
+        {
+            if (serviceClass.getName().equals(service.service.getClassName()))
+            {
                 Log.i("isMyServiceRunning?", true + "");
                 return true;
             }
@@ -208,11 +221,15 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         // Barcode result
-        if (requestCode == RC_BARCODE_CAPTURE) {
-            if (resultCode == CommonStatusCodes.SUCCESS) {
-                if (data != null) {
+        if (requestCode == RC_BARCODE_CAPTURE)
+        {
+            if (resultCode == CommonStatusCodes.SUCCESS)
+            {
+                if (data != null)
+                {
                     barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
-                    if (barcode != null) {
+                    if (barcode != null)
+                    {
                         Toast.makeText(this, barcode.displayValue, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, "Barcode read: " + barcode.displayValue);
 
@@ -237,16 +254,22 @@ public class MainActivity extends AppCompatActivity
                             public void onErrorResponse(VolleyError error)
                             {
                                 NetworkResponse networkResponse = error.networkResponse;
-                                if (networkResponse != null) {
+                                if (networkResponse != null)
+                                {
                                     String data = new String(networkResponse.data);
                                     Log.e(TAG, "onErrorResponse:\nbody:\n" + data);
 
-                                    if (networkResponse.statusCode == 500 || networkResponse.statusCode == 401) {
+                                    if (networkResponse.statusCode == 100 || networkResponse.statusCode == 401)
+                                    {
                                         login();
-                                    } else {
+                                    }
+                                    else
+                                    {
                                         Toast.makeText(MainActivity.this, "Network error!", Toast.LENGTH_SHORT).show();
                                     }
-                                } else {
+                                }
+                                else
+                                {
                                     Toast.makeText(MainActivity.this, "Network error!\nNo response received!", Toast.LENGTH_SHORT).show();
                                 }
                             }
@@ -264,17 +287,24 @@ public class MainActivity extends AppCompatActivity
 
                         VolleySingleton.getInstance(this).addToRequestQueue(qrObjectRequest);
 
-                    } else {
+                    }
+                    else
+                    {
                         Log.d(TAG, "Barcode was null.");
                     }
-
-                } else {
+                }
+                else
+                {
                     Log.d(TAG, "No barcode captured, intent data is null.");
                 }
-            } else {
+            }
+            else
+            {
                 Log.d(TAG, "onActivityResult: " + CommonStatusCodes.getStatusCodeString(resultCode));
             }
-        } else {
+        }
+        else
+        {
             super.onActivityResult(requestCode, resultCode, data);
         }
     }
