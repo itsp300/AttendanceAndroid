@@ -1,68 +1,49 @@
 package com.itsp.attendance;
 
-import android.app.ActivityManager;
 import android.app.Dialog;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
 import com.auth0.android.Auth0;
+import com.auth0.android.Auth0Exception;
+import com.auth0.android.authentication.AuthenticationAPIClient;
 import com.auth0.android.authentication.AuthenticationException;
+import com.auth0.android.authentication.storage.CredentialsManager;
+import com.auth0.android.authentication.storage.CredentialsManagerException;
+import com.auth0.android.authentication.storage.SecureCredentialsManager;
+import com.auth0.android.authentication.storage.SharedPreferencesStorage;
+import com.auth0.android.callback.BaseCallback;
 import com.auth0.android.provider.AuthCallback;
+import com.auth0.android.provider.VoidCallback;
 import com.auth0.android.provider.WebAuthProvider;
 import com.auth0.android.result.Credentials;
-import com.google.android.gms.common.api.CommonStatusCodes;
-import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.itsp.attendance.barcodereader.BarcodeCaptureActivity;
 
-import org.json.JSONObject;
+/*
+    Overall TODO list:
+    - Test more devices to ensure CredentialManager is reliable across all of them.
 
-import java.util.HashMap;
-import java.util.Map;
+ */
 
-/* TODO LIST:
-    - Check to see if QR code text is not displayed when scanned.
-    - Check android version compatibility.
-*/
 public class MainActivity extends AppCompatActivity
 {
-    private static final String TAG = MainActivity.class.getName();
-    private static final int RC_BARCODE_CAPTURE = 9001;
-    final static String CHANNEL_ID = "attendanceNotification";
-
+    final static String TAG = MainActivity.class.getName();
+    final static int AUTH0_ADDITIONAL_CHECK = 1;
     Auth0 auth0;
-
-    Intent messageIntent;
-    private MessageService messageService;
-
-    HomeFragment homeFragment;
-    SubjectFragment subjectFragment;
-    NotificationFragment notificationFragment;
-
-    FloatingActionButton qrReaderButton;
-    Barcode barcode;
+    SecureCredentialsManager credentialsManager;
+    CredentialsManager compatCredentialsManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -70,76 +51,232 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // NOTE(Morne): Navigation setup
+        BottomNavigationView navView = findViewById(R.id.nav_view);
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
+                .build();
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        NavigationUI.setupWithNavController(navView, navController);
+
+        // NOTE(Morne): Config setup
+        Config.url = Utility.loadRawResourceKey(this, R.raw.config, "url");
+        Config.urlSocket = Utility.loadRawResourceKey(this, R.raw.config, "urlSocket");
+        Utility.ASSERT(Config.url != null);
+        Utility.ASSERT(Config.urlSocket != null);
+
+        // NOTE(Morne): Authentication setup
         auth0 = new Auth0(this);
         auth0.setOIDCConformant(true);
-        //login();
 
-        Config.url = ResourceLoader.loadRawResourceKey(this, R.raw.config, "url");
-        Config.urlSocket = ResourceLoader.loadRawResourceKey(this, R.raw.config, "urlSocket");
+        getCredentials();
+    }
 
-        // NOTE(Morne): Loads the access token that is stored locally
-        final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        Config.accessToken = sharedPref.getString("accessToken", ResourceLoader.loadRawResourceKey(this, R.raw.config, "invalidAccessToken"));
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options, menu);
+        return true;
+    }
 
-        messageService = new MessageService(this);
-        messageIntent = new Intent(this, messageService.getClass());
-        if (!isMyServiceRunning(messageService.getClass()))
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        switch (item.getItemId())
         {
-            startService(messageIntent);
+            case R.id.menu_logout:
+                logout();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void getCredentials()
+    {
+        // NOTE(Morne): Support for the encryption used is limited to ap levels greater than 20
+        if (Build.VERSION.SDK_INT >= 21)
+        {
+            // NOTE(Morne): Encryption allowed
+
+            credentialsManager = new SecureCredentialsManager(this, new AuthenticationAPIClient(auth0), new SharedPreferencesStorage(this));
+
+            // TODO(Morne): The below authentication step breaks on non emulated phone.
+            //credentialsManager.requireAuthentication(this, AUTH0_ADDITIONAL_CHECK, "User Authentication", null);
+
+            credentialsManager.getCredentials(new BaseCallback<Credentials, CredentialsManagerException>()
+            {
+                @Override
+                public void onSuccess(final Credentials credentials)
+                {
+                    Config.accessToken = credentials.getAccessToken();
+                    Utility.ASSERT(Config.accessToken != null);
+                    Log.d(TAG, "Auth0 getCredentials onSuccess: token->  " + Config.accessToken);
+
+                    runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Utility.debugToast(MainActivity.this, "Loaded credentials from storage");
+                        }
+                    });
+                }
+
+                @Override
+                public void onFailure(CredentialsManagerException error)
+                {
+                    Log.e(TAG, "Auth0 getCredentials onFailure: " + error.getMessage());
+                    runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Utility.debugToast(MainActivity.this, "Failed to load credentials from storage");
+                        }
+                    });
+
+                    login();
+                }
+            });
+        }
+        else
+        {
+            // NOTE(Morne): Encryption not allowed
+
+            AuthenticationAPIClient apiClient = new AuthenticationAPIClient(auth0);
+            compatCredentialsManager = new CredentialsManager(apiClient, new SharedPreferencesStorage(this));
+            compatCredentialsManager.getCredentials(new BaseCallback<Credentials, CredentialsManagerException>()
+            {
+                @Override
+                public void onSuccess(final Credentials credentials)
+                {
+                    Config.accessToken = credentials.getAccessToken();
+                    Utility.ASSERT(Config.accessToken != null);
+                    Log.d(TAG, "Auth0 getCredentials onSuccess: token->  " + Config.accessToken);
+                    runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Utility.debugToast(MainActivity.this, "Loaded credentials from storage");
+                        }
+                    });
+
+                }
+
+                @Override
+                public void onFailure(CredentialsManagerException error)
+                {
+                    Log.e(TAG, "Auth0 getCredentials onFailure: " + error.getMessage());
+                    runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Utility.debugToast(MainActivity.this, "Failed to load credentials from storage");
+                        }
+                    });
+
+                    login();
+                }
+            });
+        }
+    }
+
+    public void saveCredentials(Credentials credentials)
+    {
+        if (Build.VERSION.SDK_INT >= 21)
+        {
+            credentialsManager.saveCredentials(credentials);
+        }
+        else
+        {
+            compatCredentialsManager.saveCredentials(credentials);
+        }
+    }
+
+    public void clearCredentials()
+    {
+        if (Build.VERSION.SDK_INT >= 21)
+        {
+            credentialsManager.clearCredentials();
+        }
+        else
+        {
+            compatCredentialsManager.clearCredentials();
+        }
+    }
+
+    public boolean hasValidCredentials()
+    {
+        boolean result = false;
+        if (Build.VERSION.SDK_INT >= 21)
+        {
+            if (credentialsManager.hasValidCredentials())
+            {
+                result = true;
+            }
+
+        }
+        else
+        {
+            if (compatCredentialsManager.hasValidCredentials())
+            {
+                result = true;
+            }
         }
 
-        // TODO(Morne): Check for compatible version of this
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-        {
-            CharSequence name = this.getString(R.string.channel_name);
-            String description = this.getResources().getString(R.string.channel_description);
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = this.getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
+        return result;
+    }
 
-        homeFragment = new HomeFragment();
-        subjectFragment = new SubjectFragment();
-        notificationFragment = new NotificationFragment();
-
-        BottomNavigationView navigation = findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener()
+    public void logout()
+    {
+        WebAuthProvider.logout(auth0).withScheme("demo").start(MainActivity.this, new VoidCallback()
         {
             @Override
-            public boolean onNavigationItemSelected(MenuItem item)
+            public void onFailure(Auth0Exception error)
             {
-                switch (item.getItemId())
+                Log.e(TAG, "Auth0 onFailure: " + error.getMessage());
+                runOnUiThread(new Runnable()
                 {
-                    case R.id.navigation_home:
-                        switchFragment(homeFragment);
-                        return true;
-                    case R.id.navigation_subject:
-                        switchFragment(subjectFragment);
-                        return true;
-                    case R.id.navigation_notification:
-                        switchFragment(notificationFragment);
-                        return true;
-                }
-                return false;
+                    @Override
+                    public void run()
+                    {
+                        Utility.debugToast(MainActivity.this, "Failed to logout");
+                    }
+                });
             }
-        });
 
-        qrReaderButton = findViewById(R.id.qr_reader_button);
-        qrReaderButton.setOnClickListener(new View.OnClickListener()
-        {
-            public void onClick(View v)
+            @Override
+            public void onSuccess(Void payload)
             {
-                Intent intent = new Intent(MainActivity.this, BarcodeCaptureActivity.class);
+                clearCredentials();
+                if (!hasValidCredentials())
+                {
+                    runOnUiThread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            Utility.debugToast(MainActivity.this, "Cleared credentials storage");
+                        }
+                    });
+                }
+                Config.accessToken = Utility.loadRawResourceKey(MainActivity.this, R.raw.config, "invalidAccessToken");
+                Utility.ASSERT(Config.accessToken != null);
+                Log.d(TAG, "Auth0 logout onSuccess: true");
+                runOnUiThread(new Runnable()
+                {
+                    @Override
+                    public void run()
+                    {
+                        Utility.debugToast(MainActivity.this, "Logged out successfully");
+                    }
+                });
 
-                // TODO(Morne): Decide whether the auto focus and flash should be used for QR scanning
-                intent.putExtra(BarcodeCaptureActivity.AutoFocus, true);
-                intent.putExtra(BarcodeCaptureActivity.UseFlash, false);
-
-                startActivityForResult(intent, RC_BARCODE_CAPTURE);
             }
         });
     }
@@ -149,6 +286,7 @@ public class MainActivity extends AppCompatActivity
         WebAuthProvider.login(auth0)
                 .withScheme("demo")
                 .withAudience("backend.itsp300.com")
+                .withScope("openid offline_access")
                 .start(MainActivity.this, new AuthCallback()
                 {
                     @Override
@@ -167,12 +305,14 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void onFailure(final AuthenticationException exception)
                     {
+                        Log.e(TAG, "Auth0 login onFailure: " + exception.getMessage());
                         runOnUiThread(new Runnable()
                         {
                             @Override
                             public void run()
                             {
                                 Toast.makeText(MainActivity.this, "Error: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                                Utility.debugToast(MainActivity.this, "Failed login");
                             }
                         });
                     }
@@ -181,140 +321,45 @@ public class MainActivity extends AppCompatActivity
                     public void onSuccess(@NonNull final Credentials credentials)
                     {
                         Config.accessToken = credentials.getAccessToken();
-                        Log.d(TAG, "Access Token: " + credentials.getAccessToken());
+                        Utility.ASSERT(Config.accessToken != null);
+                        Log.d(TAG, "Auth0 login onSuccess: Token-> " + credentials.getAccessToken());
+                        saveCredentials(credentials);
 
-                        final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                        SharedPreferences.Editor editor = sharedPref.edit();
-                        editor.putString("accessToken", Config.accessToken);
-                        editor.apply();
+                        runOnUiThread(new Runnable()
+                        {
+                            @Override
+                            public void run()
+                            {
+                                Utility.debugToast(MainActivity.this, "Saved credentials to storage");
+                            }
+                        });
 
-                        switchFragment(homeFragment);
+                        if (hasValidCredentials())
+                        {
+                            runOnUiThread(new Runnable()
+                            {
+                                @Override
+                                public void run()
+                                {
+                                    Utility.debugToast(MainActivity.this, "Logged in successfully");
+                                }
+                            });
+                        }
                     }
                 });
     }
-
-    private boolean isMyServiceRunning(Class<?> serviceClass)
-    {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
-        {
-            if (serviceClass.getName().equals(service.service.getClassName()))
-            {
-                Log.i("isMyServiceRunning?", true + "");
-                return true;
-            }
-        }
-        Log.i("isMyServiceRunning?", false + "");
-        return false;
-    }
-
-    @Override
-    protected void onDestroy()
-    {
-        stopService(messageIntent);
-        Log.i(TAG, "onDestroy!");
-        super.onDestroy();
-
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        // Barcode result
-        if (requestCode == RC_BARCODE_CAPTURE)
-        {
-            if (resultCode == CommonStatusCodes.SUCCESS)
-            {
-                if (data != null)
-                {
-                    barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
-                    if (barcode != null)
-                    {
-                        Toast.makeText(this, barcode.displayValue, Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "Barcode read: " + barcode.displayValue);
-
-                        Map<String, String> postParam = new HashMap<String, String>();
-                        postParam.put("qrCode", barcode.displayValue);
-
-                        String api_path = "/api/secure/scan_code";
-                        JsonObjectRequest qrObjectRequest = new JsonObjectRequest(Request.Method.POST,
-                                Config.url + api_path, new JSONObject(postParam),
-                                new Response.Listener<JSONObject>()
-                                {
-                                    @Override
-                                    public void onResponse(JSONObject response)
-                                    {
-                                        // TODO(Morne): Response should not echo the value sent
-                                        Log.d(TAG, "onResponse: " + response.toString());
-                                    }
-                                }, new Response.ErrorListener()
-                        {
-
-                            @Override
-                            public void onErrorResponse(VolleyError error)
-                            {
-                                NetworkResponse networkResponse = error.networkResponse;
-                                if (networkResponse != null)
-                                {
-                                    String data = new String(networkResponse.data);
-                                    Log.e(TAG, "onErrorResponse:\nbody:\n" + data);
-
-                                    if (networkResponse.statusCode == 100 || networkResponse.statusCode == 401)
-                                    {
-                                        login();
-                                    }
-                                    else
-                                    {
-                                        Toast.makeText(MainActivity.this, "Network error!", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                                else
-                                {
-                                    Toast.makeText(MainActivity.this, "Network error!\nNo response received!", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        })
-                        {
-                            @Override
-                            public Map<String, String> getHeaders() throws AuthFailureError
-                            {
-                                HashMap<String, String> headers = new HashMap<String, String>();
-                                headers.put("Authorization", "Bearer " + Config.accessToken);
-                                headers.put("Content-Type", "application/json; charset=utf-8");
-                                return headers;
-                            }
-                        };
-
-                        VolleySingleton.getInstance(this).addToRequestQueue(qrObjectRequest);
-
-                    }
-                    else
-                    {
-                        Log.d(TAG, "Barcode was null.");
-                    }
-                }
-                else
-                {
-                    Log.d(TAG, "No barcode captured, intent data is null.");
-                }
-            }
-            else
-            {
-                Log.d(TAG, "onActivityResult: " + CommonStatusCodes.getStatusCodeString(resultCode));
-            }
-        }
-        else
-        {
-            super.onActivityResult(requestCode, resultCode, data);
-        }
-    }
-
-    private void switchFragment(Fragment fragment)
-    {
-        Log.d(TAG, "switchFragment: " + fragment);
-
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_container, fragment);
-        fragmentTransaction.commit();
-    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
