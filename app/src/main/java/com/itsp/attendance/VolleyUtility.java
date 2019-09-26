@@ -24,10 +24,10 @@ public class VolleyUtility
         void onResponse(JSONObject response);
     }
 
-    public static JsonObjectRequest makeJsonObjectRequest(final Activity activity, final Context context, final String TAG, String url, final VolleyResponseListener listener)
+    public static JsonObjectRequest makeJsonObjectRequest(final Activity activity, final Context context, final String TAG, String url, JSONObject jsonObject, final VolleyResponseListener listener)
     {
         return new JsonObjectRequest
-                (Request.Method.POST, url, null, new Response.Listener<JSONObject>()
+                (Request.Method.POST, url, jsonObject, new Response.Listener<JSONObject>()
                 {
                     @Override
                     public void onResponse(JSONObject response)

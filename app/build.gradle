@@ -17,7 +17,7 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            applicationIdSuffix ".release"
+            applicationIdSuffix ".release" // Auth0 is setup to work with .debug only atm
         }
         debug {
             debuggable true
@@ -41,6 +41,11 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
+    compile 'androidx.legacy:legacy-support-v4:1.0.0'
+    // Important - the CameraSource implementation in this project requires version 8.1 or higher.
+    compile 'com.google.android.gms:play-services-vision:18.0.0'
+    compile 'com.google.android.material:material:1.0.0'
 
     //room
     implementation "android.arch.persistence.room:runtime:2.1.0"

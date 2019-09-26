@@ -41,7 +41,7 @@ public class DashboardViewModel extends ViewModel
             data = new MutableLiveData<>();
 
             String apiPath = "/api/secure/summary";
-            jsonDataRequest = VolleyUtility.makeJsonObjectRequest(activity, context, TAG, Config.url + apiPath,
+            jsonDataRequest = VolleyUtility.makeJsonObjectRequest(activity, context, TAG, Config.url + apiPath, null,
                     new VolleyUtility.VolleyResponseListener()
                     {
                         @Override

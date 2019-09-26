@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -56,7 +55,7 @@ public class NotificationsViewModel extends ViewModel
             {
                 super.onPostExecute(notifications);
 
-                Log.d(TAG, "GetNotification onPostExecute: Successfully read notifications.");
+                Log.d(TAG, "GetNotification onPostExecute: Completed reading notifications.");
                 data.postValue(notifications);
             }
         }
@@ -88,12 +87,10 @@ public class NotificationsViewModel extends ViewModel
             protected void onPostExecute(Void aVoid)
             {
                 super.onPostExecute(aVoid);
-
-                Log.d(TAG, "SaveNotification onPostExecute: Successfully inserted notification.");
-                Toast.makeText(activity.getApplicationContext(), "Saved", Toast.LENGTH_LONG).show();
+                Log.d(TAG, "SaveNotification onPostExecute: Completed inserting notification.");
             }
         }
-        SaveNotification sn = new SaveNotification();
-        sn.execute();
+        //SaveNotification sn = new SaveNotification();
+        //sn.execute();
     }
 }

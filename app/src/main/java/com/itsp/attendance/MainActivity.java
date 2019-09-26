@@ -1,12 +1,14 @@
 package com.itsp.attendance;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -16,6 +18,12 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.auth0.android.Auth0;
 import com.auth0.android.Auth0Exception;
 import com.auth0.android.authentication.AuthenticationAPIClient;
@@ -29,7 +37,16 @@ import com.auth0.android.provider.AuthCallback;
 import com.auth0.android.provider.VoidCallback;
 import com.auth0.android.provider.WebAuthProvider;
 import com.auth0.android.result.Credentials;
+import com.google.android.gms.common.api.CommonStatusCodes;
+import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.itsp.attendance.barcodereader.BarcodeCaptureActivity;
+
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /*
     Overall TODO list:
@@ -42,9 +59,12 @@ public class MainActivity extends AppCompatActivity
 {
     final static String TAG = MainActivity.class.getName();
     final static int AUTH0_ADDITIONAL_CHECK = 1;
+    private final static int RC_BARCODE_CAPTURE = 9001;
     Auth0 auth0;
     SecureCredentialsManager credentialsManager;
     CredentialsManager compatCredentialsManager;
+    FloatingActionButton qrReaderButton;
+    Barcode barcode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -60,6 +80,21 @@ public class MainActivity extends AppCompatActivity
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
+
+        qrReaderButton = findViewById(R.id.main_floating_scan);
+        qrReaderButton.setOnClickListener(new View.OnClickListener()
+        {
+            public void onClick(View v)
+            {
+                Intent intent = new Intent(MainActivity.this, BarcodeCaptureActivity.class);
+
+                // TODO(Morne): Decide whether the auto focus and flash should be used for QR scanning
+                intent.putExtra(BarcodeCaptureActivity.AutoFocus, true);
+                intent.putExtra(BarcodeCaptureActivity.UseFlash, false);
+
+                startActivityForResult(intent, RC_BARCODE_CAPTURE);
+            }
+        });
 
         // NOTE(Morne): Config setup
         Config.url = Utility.loadRawResourceKey(this, R.raw.config, "url");
@@ -92,6 +127,67 @@ public class MainActivity extends AppCompatActivity
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        // TODO(Morne): Barcode scanner requires newer versions of google play services, check if older devices like android 4.0 can easily obtain this.
+        
+        if (requestCode == RC_BARCODE_CAPTURE)
+        {
+            if (resultCode == CommonStatusCodes.SUCCESS)
+            {
+                if (data != null)
+                {
+                    barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
+                    if (barcode != null)
+                    {
+                        Toast.makeText(this, barcode.displayValue, Toast.LENGTH_SHORT).show();
+                        Log.d(TAG, "Barcode read: " + barcode.displayValue);
+
+                        Map<String, String> postParam = new HashMap<String, String>();
+                        postParam.put("qrCode", barcode.displayValue);
+
+                        String apiPath = "/api/secure/scan_code";
+                        JsonObjectRequest qrObjectRequest = VolleyUtility.makeJsonObjectRequest(this, getApplicationContext(), TAG, Config.url + apiPath, new JSONObject(postParam),
+                                new VolleyUtility.VolleyResponseListener()
+                                {
+                                    @Override
+                                    public void onResponse(JSONObject response)
+                                    {
+
+                                        Log.d(TAG, "onResponse: " + response.toString());
+
+
+                                        Log.d(TAG, "onResponse: QR code was sent!");
+
+
+                                    }
+                                });
+
+                        VolleySingleton.getInstance(this).addToRequestQueue(qrObjectRequest);
+
+                    }
+                    else
+                    {
+                        Log.d(TAG, "Barcode was null.");
+                    }
+                }
+                else
+                {
+                    Log.d(TAG, "No barcode captured, intent data is null.");
+                }
+            }
+            else
+            {
+                Log.d(TAG, "onActivityResult: " + CommonStatusCodes.getStatusCodeString(resultCode));
+            }
+        }
+        else
+        {
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
