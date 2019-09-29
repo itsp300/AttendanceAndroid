@@ -62,35 +62,5 @@ public class NotificationsViewModel extends ViewModel
 
         GetNotifications gn = new GetNotifications();
         gn.execute();
-
-        /* TODO(Morne): Move to notification service */
-        class SaveNotification extends AsyncTask<Void, Void, Void>
-        {
-
-            @Override
-            protected Void doInBackground(Void... voids)
-            {
-                Log.d(TAG, "SaveNotification: Inserting notification to db.");
-                //creating a task
-                Notification notification = new Notification();
-                notification.setTitle("Testing");
-                notification.setDescription("Description1");
-
-                //adding to database
-                DatabaseClient.getInstance(activity.getApplicationContext()).getAppDatabase()
-                        .notificationDao()
-                        .insert(notification);
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid)
-            {
-                super.onPostExecute(aVoid);
-                Log.d(TAG, "SaveNotification onPostExecute: Completed inserting notification.");
-            }
-        }
-        //SaveNotification sn = new SaveNotification();
-        //sn.execute();
     }
 }

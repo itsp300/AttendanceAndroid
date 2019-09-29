@@ -4,6 +4,7 @@ android {
     compileSdkVersion 29
     buildToolsVersion "29.0.2"
     defaultConfig {
+        multiDexEnabled true
         applicationId "com.itsp.attendance"
         minSdkVersion 16
         targetSdkVersion 29
@@ -41,11 +42,18 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation 'androidx.multidex:multidex:2.0.1'
 
-    compile 'androidx.legacy:legacy-support-v4:1.0.0'
-    // Important - the CameraSource implementation in this project requires version 8.1 or higher.
-    compile 'com.google.android.gms:play-services-vision:18.0.0'
-    compile 'com.google.android.material:material:1.0.0'
+    // TODO(Morne): OKHTTP is the preventing builds below api 21
+    implementation("com.squareup.okhttp3:okhttp:4.1.1")
+
+    implementation group: 'com.auth0', name: 'java-jwt', version: '3.7.0'
+    implementation 'io.jsonwebtoken:jjwt-api:0.10.5'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.10.5',
+            'io.jsonwebtoken:jjwt-jackson:0.10.5'
+
+    implementation 'com.google.android.gms:play-services-vision:18.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
 
     //room
     implementation "android.arch.persistence.room:runtime:2.1.0"

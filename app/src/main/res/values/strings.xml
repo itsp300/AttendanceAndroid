@@ -7,6 +7,9 @@
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
 
+    <string name="channel_name">Attendance Notification</string>
+    <string name="channel_description">Notifications regarding student attendances</string>
+
     <string name="ok">OK</string>
 
     <string name="permission_camera_rationale">Access to the camera is needed for detection</string>

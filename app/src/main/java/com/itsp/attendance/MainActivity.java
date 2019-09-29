@@ -1,6 +1,10 @@
 package com.itsp.attendance;
 
+import android.app.ActivityManager;
 import android.app.Dialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,11 +22,6 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.NetworkResponse;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.auth0.android.Auth0;
 import com.auth0.android.Auth0Exception;
@@ -41,6 +40,7 @@ import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.itsp.attendance.background.PermanentService;
 import com.itsp.attendance.barcodereader.BarcodeCaptureActivity;
 
 import org.json.JSONObject;
@@ -51,7 +51,7 @@ import java.util.Map;
 /*
     Overall TODO list:
     - Test more devices to ensure CredentialManager is reliable across all of them.
-    - Content is hidden behind navigation bar at bottom for recycler views (e.g. Home fragment)
+    - Floating button may block content, fix.
 
  */
 
@@ -60,11 +60,15 @@ public class MainActivity extends AppCompatActivity
     final static String TAG = MainActivity.class.getName();
     final static int AUTH0_ADDITIONAL_CHECK = 1;
     private final static int RC_BARCODE_CAPTURE = 9001;
+    public final static String CHANNEL_ID = "attendanceNotification";
     Auth0 auth0;
     SecureCredentialsManager credentialsManager;
     CredentialsManager compatCredentialsManager;
     FloatingActionButton qrReaderButton;
     Barcode barcode;
+
+    PermanentService permanentService;
+    Intent permanentIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -106,7 +110,24 @@ public class MainActivity extends AppCompatActivity
         auth0 = new Auth0(this);
         auth0.setOIDCConformant(true);
 
-        getCredentials();
+        permanentService = new PermanentService(this);
+        permanentIntent = new Intent(this, permanentService.getClass());
+
+        // TODO(Morne): Double check this if is fine with lower versions
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
+            CharSequence name = this.getString(R.string.channel_name);
+            String description = this.getResources().getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = this.getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        //getCredentials();
     }
 
     @Override
@@ -134,7 +155,7 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         // TODO(Morne): Barcode scanner requires newer versions of google play services, check if older devices like android 4.0 can easily obtain this.
-        
+
         if (requestCode == RC_BARCODE_CAPTURE)
         {
             if (resultCode == CommonStatusCodes.SUCCESS)
@@ -191,6 +212,29 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private boolean isMyServiceRunning(Class<?> serviceClass)
+    {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
+        {
+            if (serviceClass.getName().equals(service.service.getClassName()))
+            {
+                Log.i("isMyServiceRunning?", true + "");
+                return true;
+            }
+        }
+        Log.i("isMyServiceRunning?", false + "");
+        return false;
+    }
+
+    @Override
+    protected void onDestroy() {
+        stopService(permanentIntent);
+        Log.i("MAINACT", "onDestroy!");
+        super.onDestroy();
+
+    }
+
     public void getCredentials()
     {
         // NOTE(Morne): Support for the encryption used is limited to ap levels greater than 20
@@ -198,6 +242,7 @@ public class MainActivity extends AppCompatActivity
         {
             // NOTE(Morne): Encryption allowed
 
+            // TODO(Morne): Maybe not create this on every call.
             credentialsManager = new SecureCredentialsManager(this, new AuthenticationAPIClient(auth0), new SharedPreferencesStorage(this));
 
             // TODO(Morne): The below authentication step breaks on non emulated phone.
@@ -211,6 +256,11 @@ public class MainActivity extends AppCompatActivity
                     Config.accessToken = credentials.getAccessToken();
                     Utility.ASSERT(Config.accessToken != null);
                     Log.d(TAG, "Auth0 getCredentials onSuccess: token->  " + Config.accessToken);
+
+                    if (!isMyServiceRunning(permanentService.getClass()))
+                    {
+                        startService(permanentIntent);
+                    }
 
                     runOnUiThread(new Runnable()
                     {
@@ -243,6 +293,7 @@ public class MainActivity extends AppCompatActivity
         {
             // NOTE(Morne): Encryption not allowed
 
+            // TODO(Morne): Maybe not create this on every call.
             AuthenticationAPIClient apiClient = new AuthenticationAPIClient(auth0);
             compatCredentialsManager = new CredentialsManager(apiClient, new SharedPreferencesStorage(this));
             compatCredentialsManager.getCredentials(new BaseCallback<Credentials, CredentialsManagerException>()
@@ -253,6 +304,12 @@ public class MainActivity extends AppCompatActivity
                     Config.accessToken = credentials.getAccessToken();
                     Utility.ASSERT(Config.accessToken != null);
                     Log.d(TAG, "Auth0 getCredentials onSuccess: token->  " + Config.accessToken);
+
+                    if (!isMyServiceRunning(permanentService.getClass()))
+                    {
+                        startService(permanentIntent);
+                    }
+
                     runOnUiThread(new Runnable()
                     {
                         @Override
