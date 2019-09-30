@@ -3,6 +3,7 @@ package com.itsp.attendance.background;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteAccessPermException;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -38,9 +39,11 @@ public class PermanentService extends Service {
 
     }
 
-    public PermanentService() {
+    public PermanentService()
+    {
 
     }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -57,11 +60,12 @@ public class PermanentService extends Service {
         super.onDestroy();
         Intent broadcastIntent = new Intent(this, PermanentRestartReceiver.class);
 
-        sendBroadcast(broadcastIntent);
         if(notificationSocket.socket != null)
         {
-            notificationSocket.closeSocket();
+            notificationSocket.socket.close(1000, "App was closed");
         }
+
+        sendBroadcast(broadcastIntent);
     }
 
     private Timer timer;

@@ -165,6 +165,10 @@ public class MainActivity extends AppCompatActivity
                     barcode = data.getParcelableExtra(BarcodeCaptureActivity.BarcodeObject);
                     if (barcode != null)
                     {
+                        if (barcode.displayValue.length() > 24)
+                        {
+                            Toast.makeText(this, "Invalid QR code!", Toast.LENGTH_SHORT).show();
+                        }
                         Toast.makeText(this, barcode.displayValue, Toast.LENGTH_SHORT).show();
                         Log.d(TAG, "Barcode read: " + barcode.displayValue);
 

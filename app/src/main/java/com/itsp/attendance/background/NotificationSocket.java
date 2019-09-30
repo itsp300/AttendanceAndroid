@@ -55,10 +55,10 @@ public class NotificationSocket extends WebSocketListener
         client.dispatcher().executorService().shutdown();
     }
 
-    public void closeSocket()
-    {
-        socket.close(1000, null);
+    NotificationSocket() {
+
     }
+
 
     @Override
     public void onOpen(WebSocket webSocket, Response response)
@@ -87,65 +87,75 @@ public class NotificationSocket extends WebSocketListener
 
         // TODO(Morne): Actually use data from socket
 
-            /*
-            JSONObject notificationJSON = new JSONObject(response);
-            String title = notificationJSON.getString("title");
-            String description = notificationJSON.getString("description");
-             */
-
-        String title = "Testing!!!!!";
-        String description = "Testing description!!!";
-
-        class SaveNotification extends AsyncTask<Void, Void, Void>
+        try
         {
-            String title;
-            String description;
-            SaveNotification(String title, String description)
+            JSONObject notificationJSON = new JSONObject(response);
+
+            if(notificationJSON.getString("type").equals("notif_mobile"))
             {
-                this.title = title;
-                this.description = description;
+                String title = notificationJSON.getString("title");
+                String description = notificationJSON.getString("description");
+
+                class SaveNotification extends AsyncTask<Void, Void, Void>
+                {
+                    String title;
+                    String description;
+                    SaveNotification(String title, String description)
+                    {
+                        this.title = title;
+                        this.description = description;
+                    }
+
+
+                    @Override
+                    protected Void doInBackground(Void... voids)
+                    {
+                        Log.d(TAG, "SaveNotification: Inserting notification to db.");
+                        //creating a task
+                        Notification notification = new Notification();
+                        notification.setTitle(title);
+                        notification.setDescription(description);
+
+                        //adding to database
+                        DatabaseClient.getInstance(context).getAppDatabase()
+                                .notificationDao()
+                                .insert(notification);
+                        return null;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Void aVoid)
+                    {
+                        super.onPostExecute(aVoid);
+                        Log.d(TAG, "SaveNotification onPostExecute: Completed inserting notification.");
+                    }
+                }
+                SaveNotification sn = new SaveNotification(title, description);
+                sn.execute();
+
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
+                        .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                        .setContentTitle(title)
+                        .setContentText(description)
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+
+                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+                // NOTE(Morne): We must create a unique id for each notification to ensure that each one is displayed
+                String date = new SimpleDateFormat("ddHHmmss", Locale.UK).format(new Date());
+                int id = (int) (Integer.parseInt(date) + PARTIAL_UNIQUE);
+                PARTIAL_UNIQUE++;
+                notificationManager.notify(id, builder.build());
+                Log.d(TAG, "Notification was created");
             }
-
-
-            @Override
-            protected Void doInBackground(Void... voids)
-            {
-                Log.d(TAG, "SaveNotification: Inserting notification to db.");
-                //creating a task
-                Notification notification = new Notification();
-                notification.setTitle(title);
-                notification.setDescription(description);
-
-                //adding to database
-                DatabaseClient.getInstance(context).getAppDatabase()
-                        .notificationDao()
-                        .insert(notification);
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid)
-            {
-                super.onPostExecute(aVoid);
-                Log.d(TAG, "SaveNotification onPostExecute: Completed inserting notification.");
-            }
+        } catch (JSONException e)
+        {
+            e.printStackTrace();
         }
-        SaveNotification sn = new SaveNotification(title, description);
-        sn.execute();
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, MainActivity.CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
-                .setContentTitle(title)
-                .setContentText(description)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
+        //String title = "Testing!!!!!";
+        //String description = "Testing description!!!";
 
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        // NOTE(Morne): We must create a unique id for each notification to ensure that each one is displayed
-        String date = new SimpleDateFormat("ddHHmmss", Locale.UK).format(new Date());
-        int id = (int) (Integer.parseInt(date) + PARTIAL_UNIQUE);
-        PARTIAL_UNIQUE++;
-        notificationManager.notify(id, builder.build());
-        Log.d(TAG, "Notification was created");
+
 
     }
 
