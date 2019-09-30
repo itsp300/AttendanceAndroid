@@ -66,7 +66,7 @@ public class NotificationSocket extends WebSocketListener
         try
         {
             Algorithm algorithm = Algorithm.HMAC256("ITSP300");
-            String token = JWT.create().withClaim("type", "auth").withClaim("access_token", Config.accessToken).sign(algorithm);
+            String token = JWT.create().withClaim("type", "auth_mobile").withClaim("access_token", Config.accessToken).sign(algorithm);
             webSocket.send(token);
 
             Log.d(TAG, "onOpen: " + "Socket Token: " + token);
