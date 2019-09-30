@@ -58,7 +58,10 @@ public class PermanentService extends Service {
         Intent broadcastIntent = new Intent(this, PermanentRestartReceiver.class);
 
         sendBroadcast(broadcastIntent);
-        notificationSocket.closeSocket();
+        if(notificationSocket.socket != null)
+        {
+            notificationSocket.closeSocket();
+        }
     }
 
     private Timer timer;
