@@ -127,7 +127,7 @@ public class MainActivity extends AppCompatActivity
             notificationManager.createNotificationChannel(channel);
         }
 
-        //getCredentials();
+        getCredentials();
     }
 
     @Override
@@ -507,13 +507,6 @@ public class MainActivity extends AppCompatActivity
                 });
     }
 }
-
-
-
-
-
-
-
 
 
 

@@ -2,6 +2,7 @@ package com.itsp.attendance.background;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.util.Base64;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -82,10 +83,8 @@ public class NotificationSocket extends WebSocketListener
 
         Log.d(TAG, "onMessage: jwt-> " + jwt);
 
-        String response = JWT.decode(jwt).getClaim("img").asString();
+        String response = new String(Base64.decode(JWT.decode(jwt).getPayload(), Base64.DEFAULT));
         Log.d(TAG, "onMessage: notification-> " + response);
-
-        // TODO(Morne): Actually use data from socket
 
         try
         {
@@ -105,7 +104,6 @@ public class NotificationSocket extends WebSocketListener
                         this.title = title;
                         this.description = description;
                     }
-
 
                     @Override
                     protected Void doInBackground(Void... voids)
@@ -151,12 +149,6 @@ public class NotificationSocket extends WebSocketListener
         {
             e.printStackTrace();
         }
-
-        //String title = "Testing!!!!!";
-        //String description = "Testing description!!!";
-
-
-
     }
 
     @Override
