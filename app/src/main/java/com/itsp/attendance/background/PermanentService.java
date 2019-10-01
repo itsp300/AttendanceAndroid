@@ -51,7 +51,7 @@ public class PermanentService extends Service {
 
         notificationSocket = new NotificationSocket(getApplicationContext());
 
-        //startTimer(); //Timer for the POST request
+        startTimer(); //Timer for the POST request
         return START_STICKY;
     }
 
@@ -62,10 +62,12 @@ public class PermanentService extends Service {
 
         if(notificationSocket.socket != null)
         {
-            notificationSocket.socket.close(1000, "App was closed");
+            notificationSocket.onClosing(notificationSocket.socket, 1000, "App was closed");
         }
+        notificationSocket = null;
 
         sendBroadcast(broadcastIntent);
+        stoptimertask();
     }
 
     private Timer timer;
@@ -82,7 +84,11 @@ public class PermanentService extends Service {
     public void initializeTimerTask() {
         timerTask = new TimerTask() {
             public void run() {
-                Log.e(TAG, "run: " + "Service running!");
+                if (notificationSocket.socket == null)
+                {
+                    notificationSocket.init(getApplicationContext());
+                }
+                Log.d(TAG, "Timer: " + "Background service running!");
             }
         };
     }

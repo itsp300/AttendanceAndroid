@@ -42,6 +42,15 @@ public class NotificationSocket extends WebSocketListener
     // TODO(Morne): Retry on fail
     NotificationSocket(Context context)
     {
+        init(context);
+    }
+
+    NotificationSocket() {
+
+    }
+
+    public void init(Context context)
+    {
         this.context = context;
         OkHttpClient client = new OkHttpClient.Builder()
                 .readTimeout(0, TimeUnit.MILLISECONDS)
@@ -54,10 +63,6 @@ public class NotificationSocket extends WebSocketListener
 
         // Trigger shutdown of the dispatcher's executor so this process can exit cleanly.
         client.dispatcher().executorService().shutdown();
-    }
-
-    NotificationSocket() {
-
     }
 
 
