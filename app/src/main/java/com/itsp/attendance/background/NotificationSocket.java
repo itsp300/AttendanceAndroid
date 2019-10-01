@@ -2,6 +2,7 @@ package com.itsp.attendance.background;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.util.Base64;
 import android.util.Log;
 
@@ -17,6 +18,7 @@ import com.itsp.attendance.R;
 import com.itsp.attendance.database.DatabaseClient;
 import com.itsp.attendance.database.Notification;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -34,7 +36,7 @@ import okio.ByteString;
 
 public class NotificationSocket extends WebSocketListener
 {
-    private final static String TAG = "MessageWebSocket";
+    private final static String TAG = "NotificationWebSocket";
     static int PARTIAL_UNIQUE = 0;
     Context context;
     WebSocket socket;
@@ -165,14 +167,28 @@ public class NotificationSocket extends WebSocketListener
     @Override
     public void onClosing(WebSocket webSocket, int code, String reason)
     {
-
-        webSocket.close(1000, null);
+        webSocket.close(code, reason);
         Log.d(TAG, "onClosing: " + code + " " + reason);
+    }
+
+    @Override
+    public void onClosed(@NotNull WebSocket webSocket, int code, @NotNull String reason)
+    {
+        Log.d(TAG, "onClosed: " + code + " " + reason);
+        super.onClosed(webSocket, code, reason);
+        if(code != 1001)
+        {
+            SystemClock.sleep(1000);
+            init(context);
+        }
     }
 
     @Override
     public void onFailure(WebSocket webSocket, Throwable t, Response response)
     {
         t.printStackTrace();
+        Log.e(TAG, "onFailure: " + "true");
+        SystemClock.sleep(1000);
+        init(context);
     }
 }

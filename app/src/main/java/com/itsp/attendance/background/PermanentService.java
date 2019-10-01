@@ -62,7 +62,7 @@ public class PermanentService extends Service {
 
         if(notificationSocket.socket != null)
         {
-            notificationSocket.onClosing(notificationSocket.socket, 1000, "App was closed");
+            notificationSocket.socket.close(1001, "App closed");
         }
         notificationSocket = null;
 
@@ -84,10 +84,7 @@ public class PermanentService extends Service {
     public void initializeTimerTask() {
         timerTask = new TimerTask() {
             public void run() {
-                if (notificationSocket.socket == null)
-                {
-                    notificationSocket.init(getApplicationContext());
-                }
+
                 Log.d(TAG, "Timer: " + "Background service running!");
             }
         };
