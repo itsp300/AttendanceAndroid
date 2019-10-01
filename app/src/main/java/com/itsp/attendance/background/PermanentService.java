@@ -65,9 +65,9 @@ public class PermanentService extends Service {
             notificationSocket.socket.close(1001, "App closed");
         }
         notificationSocket = null;
+        stoptimertask();
 
         sendBroadcast(broadcastIntent);
-        stoptimertask();
     }
 
     private Timer timer;

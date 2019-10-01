@@ -127,6 +127,11 @@ public class MainActivity extends AppCompatActivity
             notificationManager.createNotificationChannel(channel);
         }
 
+        if (!isMyServiceRunning(permanentService.getClass()))
+        {
+            startService(permanentIntent);
+        }
+
         getCredentials();
     }
 
@@ -261,10 +266,7 @@ public class MainActivity extends AppCompatActivity
                     Utility.ASSERT(Config.accessToken != null);
                     Log.d(TAG, "Auth0 getCredentials onSuccess: token->  " + Config.accessToken);
 
-                    if (!isMyServiceRunning(permanentService.getClass()))
-                    {
-                        startService(permanentIntent);
-                    }
+
 
                     runOnUiThread(new Runnable()
                     {
@@ -308,11 +310,6 @@ public class MainActivity extends AppCompatActivity
                     Config.accessToken = credentials.getAccessToken();
                     Utility.ASSERT(Config.accessToken != null);
                     Log.d(TAG, "Auth0 getCredentials onSuccess: token->  " + Config.accessToken);
-
-                    if (!isMyServiceRunning(permanentService.getClass()))
-                    {
-                        startService(permanentIntent);
-                    }
 
                     runOnUiThread(new Runnable()
                     {
