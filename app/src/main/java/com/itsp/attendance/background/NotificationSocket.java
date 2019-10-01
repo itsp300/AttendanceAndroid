@@ -59,7 +59,7 @@ public class NotificationSocket extends WebSocketListener
         Request request = new Request.Builder()
                 .url(Config.urlSocket)
                 .build();
-        WebSocket socket = client.newWebSocket(request, this);
+        socket = client.newWebSocket(request, this);
 
         // Trigger shutdown of the dispatcher's executor so this process can exit cleanly.
         client.dispatcher().executorService().shutdown();
