@@ -16,11 +16,11 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.itsp.attendance.R;
-import com.itsp.attendance.Utility;
 
 public class DashboardFragment extends Fragment
 {
     private DashboardViewModel dashboardViewModel;
+    public static boolean loadedPrev;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState)
@@ -51,13 +51,21 @@ public class DashboardFragment extends Fragment
                 textRatingPercentage.setText((Math.round(newData.ratingPercentage * 100.0f) / 100.0f) + "%");
 
                 int level = (int) Math.ceil(newData.ratingPercentage) * 100;
-
-                RatingFillAnimation ratingAnimation = new RatingFillAnimation(imageRating, 0, level);
-                ratingAnimation.setDuration(1000);
-                imageRating.startAnimation(ratingAnimation);
+                if(loadedPrev)
+                {
+                    imageRating.setImageLevel(level);
+                }
+                else
+                {
+                    RatingFillAnimation ratingAnimation = new RatingFillAnimation(imageRating, 0, level);
+                    ratingAnimation.setDuration(1000);
+                    imageRating.startAnimation(ratingAnimation);
+                }
 
             }
         });
+
+        imageRating.setImageLevel(0);
 
         // NOTE(Morne): Attempts to retrieve new data from the server, in the meantime we display the previous data.
         dashboardViewModel.loadData();

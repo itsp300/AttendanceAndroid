@@ -65,6 +65,7 @@ public class DashboardViewModel extends ViewModel
                                 data.missedTotal = Integer.toString(missedTotal);
                                 data.ratingPercentage = (((float) attendedTotal / (float) classTotal) * 100f);
 
+                                DashboardFragment.loadedPrev = false;
                                 DashboardViewModel.this.data.postValue(data);
 
                                 Log.d(TAG, "onResponse: Dashboard data updated");
@@ -78,6 +79,7 @@ public class DashboardViewModel extends ViewModel
 
             //loadData(); // <-- Runs on first creation and never again assuming its not called anywhere else
         }
+        DashboardFragment.loadedPrev = true;
 
         return data;
     }

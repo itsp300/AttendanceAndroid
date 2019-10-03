@@ -19,7 +19,8 @@ import java.util.Map;
 
 public class VolleyUtility
 {
-    public interface VolleyResponseListener {
+    public interface VolleyResponseListener
+    {
 
         void onResponse(JSONObject response);
     }
@@ -40,27 +41,18 @@ public class VolleyUtility
                     @Override
                     public void onErrorResponse(VolleyError error)
                     {
+                        Toast.makeText(context, "Network error!", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "onErrorResponse", error.getCause());
                         NetworkResponse networkResponse = error.networkResponse;
-                        if(context != null)
+                        if (networkResponse != null)
                         {
-                            if(networkResponse != null)
-                            {
-                                String data = new String(networkResponse.data);
-                                Log.e(TAG, "onErrorResponse:\nbody:\n" + data);
+                            String data = new String(networkResponse.data);
+                            Log.e(TAG, "onErrorResponse:\nbody:\n" + data);
 
-                                // TODO(Morne): Test error codes in 500'ish (Malformed token error)
-                                if(networkResponse.statusCode == 401)
-                                {
-                                    ((MainActivity)activity).getCredentials();
-                                }
-                                else
-                                {
-                                    Toast.makeText(context, "Network error!", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                            else
+                            // TODO(Morne): Test error codes in 500'ish (Malformed token error)
+                            if (networkResponse.statusCode == 401)
                             {
-                                Toast.makeText(context, "Network error!\nNo response received!", Toast.LENGTH_SHORT).show();
+                                ((MainActivity) activity).getCredentials();
                             }
                         }
                     }

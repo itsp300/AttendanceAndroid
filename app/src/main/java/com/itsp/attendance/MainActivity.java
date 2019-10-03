@@ -44,7 +44,6 @@ import com.itsp.attendance.background.PermanentService;
 import com.itsp.attendance.barcodereader.BarcodeCaptureActivity;
 
 import org.json.JSONObject;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -174,30 +173,34 @@ public class MainActivity extends AppCompatActivity
                         {
                             Toast.makeText(this, "Invalid QR code!", Toast.LENGTH_SHORT).show();
                         }
-                        Toast.makeText(this, barcode.displayValue, Toast.LENGTH_SHORT).show();
-                        Log.d(TAG, "Barcode read: " + barcode.displayValue);
+                        else
+                        {
+                            Toast.makeText(this, barcode.displayValue, Toast.LENGTH_SHORT).show();
+                            Log.d(TAG, "Barcode read: " + barcode.displayValue);
 
-                        Map<String, String> postParam = new HashMap<String, String>();
-                        postParam.put("qrCode", barcode.displayValue);
+                            Map<String, String> postParam = new HashMap<String, String>();
+                            postParam.put("qrCode", barcode.displayValue);
 
-                        String apiPath = "/api/secure/scan_code";
-                        JsonObjectRequest qrObjectRequest = VolleyUtility.makeJsonObjectRequest(this, getApplicationContext(), TAG, Config.url + apiPath, new JSONObject(postParam),
-                                new VolleyUtility.VolleyResponseListener()
-                                {
-                                    @Override
-                                    public void onResponse(JSONObject response)
+                            String apiPath = "/api/secure/scan_code";
+                            JsonObjectRequest qrObjectRequest = VolleyUtility.makeJsonObjectRequest(this, getApplicationContext(), TAG, Config.url + apiPath, new JSONObject(postParam),
+                                    new VolleyUtility.VolleyResponseListener()
                                     {
+                                        @Override
+                                        public void onResponse(JSONObject response)
+                                        {
 
-                                        Log.d(TAG, "onResponse: " + response.toString());
+                                            Log.d(TAG, "onResponse: " + response.toString());
 
 
-                                        Log.d(TAG, "onResponse: QR code was sent!");
+                                            Log.d(TAG, "onResponse: QR code was sent!");
 
 
-                                    }
-                                });
+                                        }
+                                    });
 
-                        VolleySingleton.getInstance(this).addToRequestQueue(qrObjectRequest);
+                            VolleySingleton.getInstance(this).addToRequestQueue(qrObjectRequest);
+                        }
+
 
                     }
                     else
